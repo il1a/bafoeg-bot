@@ -12,6 +12,8 @@ import { createClient } from '@/utils/supabase/client'
 import { useEffect, useState, useRef } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { LanguageToggle } from './language-toggle'
+import { useLanguage } from '@/contexts/language-context'
 
 type Chat = Database['public']['Tables']['chats']['Row']
 
@@ -21,6 +23,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ initialChats = [], user }: SidebarProps) {
+    const { t } = useLanguage()
     const [chats, setChats] = useState<Chat[]>(initialChats)
     const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null)
     const [editingChatId, setEditingChatId] = useState<string | null>(null)
@@ -40,6 +43,17 @@ export function Sidebar({ initialChats = [], user }: SidebarProps) {
             editInputRef.current.select()
         }
     }, [editingChatId])
+
+    useEffect(() => {
+        const handleTitleUpdate = (e: Event) => {
+            const customEvent = e as CustomEvent
+            const { chatId, title } = customEvent.detail
+            setChats(prev => prev.map(c => c.id === chatId ? { ...c, title } : c))
+        }
+
+        window.addEventListener('chat-title-updated', handleTitleUpdate)
+        return () => window.removeEventListener('chat-title-updated', handleTitleUpdate)
+    }, [])
 
     const handleNewChat = async () => {
         if (!user) return
@@ -108,7 +122,7 @@ export function Sidebar({ initialChats = [], user }: SidebarProps) {
                     variant="default"
                 >
                     <Plus className="h-4 w-4" />
-                    New Chat
+                    {t('newChat')}
                 </Button>
             </div>
 
@@ -164,7 +178,7 @@ export function Sidebar({ initialChats = [], user }: SidebarProps) {
                                             onClick={() => router.push(`/app/${chat.id}`)}
                                         >
                                             <MessageSquare className="h-4 w-4 shrink-0" />
-                                            <span className="flex-1 truncate min-w-0">{chat.title || 'Untitled Chat'}</span>
+                                            <span className="flex-1 truncate min-w-0">{chat.title || t('untitledChat')}</span>
                                         </div>
 
                                         {/* Action buttons - positioned relative to parent wrapper */}
@@ -200,14 +214,14 @@ export function Sidebar({ initialChats = [], user }: SidebarProps) {
 
                             {confirmingDeleteId === chat.id && (
                                 <div className="flex items-center gap-1 px-3 py-1.5 bg-destructive/10 rounded-md mt-1 text-sm">
-                                    <span className="text-muted-foreground text-xs shrink-0">Delete?</span>
+                                    <span className="text-muted-foreground text-xs shrink-0">{t('deleteChatConfirm')}</span>
                                     <Button
                                         variant="ghost"
                                         size="sm"
                                         className="h-5 px-2 text-xs text-red-500 hover:text-red-600 hover:bg-red-500/10"
                                         onClick={() => handleDeleteChat(chat.id)}
                                     >
-                                        Yes
+                                        {t('yes')}
                                     </Button>
                                     <Button
                                         variant="ghost"
@@ -215,7 +229,7 @@ export function Sidebar({ initialChats = [], user }: SidebarProps) {
                                         className="h-5 px-2 text-xs text-muted-foreground hover:text-foreground"
                                         onClick={() => setConfirmingDeleteId(null)}
                                     >
-                                        No
+                                        {t('no')}
                                     </Button>
                                 </div>
                             )}
@@ -224,7 +238,7 @@ export function Sidebar({ initialChats = [], user }: SidebarProps) {
                     ))}
                     {chats.length === 0 && (
                         <div className="text-center text-muted-foreground text-xs py-8">
-                            No chats yet. Start one!
+                            {t('noChatsYet')}
                         </div>
                     )}
                 </div>
@@ -239,6 +253,7 @@ export function Sidebar({ initialChats = [], user }: SidebarProps) {
                     <div className="flex flex-col overflow-hidden flex-1">
                         <span className="text-sm font-medium truncate">{user?.email}</span>
                     </div>
+                    <LanguageToggle />
                     <ThemeToggle />
                 </div>
                 <Button
@@ -248,7 +263,7 @@ export function Sidebar({ initialChats = [], user }: SidebarProps) {
                     onClick={handleSignOut}
                 >
                     <LogOut className="h-4 w-4" />
-                    Sign Out
+                    {t('signOut')}
                 </Button>
             </div>
         </div>

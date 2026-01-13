@@ -11,7 +11,11 @@ import { Loader2, ArrowLeft, Mail } from 'lucide-react'
 
 type AuthMode = 'signin' | 'signup' | 'forgot' | 'magic-link'
 
+import { LanguageToggle } from '@/components/language-toggle'
+import { useLanguage } from '@/contexts/language-context'
+
 export default function LoginPage() {
+    const { t } = useLanguage()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [isLoading, setIsLoading] = useState(false)
@@ -22,6 +26,7 @@ export default function LoginPage() {
     const supabase = createClient()
 
     const handleAuth = async (e: React.FormEvent) => {
+        // ... (auth logic remains same, but strings could be translated if we added dynamic error messages)
         e.preventDefault()
         setIsLoading(true)
         setError(null)
@@ -36,20 +41,20 @@ export default function LoginPage() {
                     },
                 })
                 if (error) throw error
-                setSuccess('Check your email for a magic sign-in link!')
+                setSuccess(t('successMagicLink'))
             } else if (mode === 'forgot') {
                 const { error } = await supabase.auth.resetPasswordForEmail(email, {
                     redirectTo: `${window.location.origin}/auth/callback?next=/auth/update-password`,
                 })
                 if (error) throw error
-                setSuccess('Check your email for a password reset link.')
+                setSuccess(t('successResetLink'))
             } else if (mode === 'signup') {
                 const { error } = await supabase.auth.signUp({
                     email,
                     password,
                 })
                 if (error) throw error
-                setSuccess('Check your email to confirm your account.')
+                setSuccess(t('successSignup'))
             } else {
                 const { error } = await supabase.auth.signInWithPassword({
                     email,
@@ -75,28 +80,28 @@ export default function LoginPage() {
 
     const getTitle = () => {
         switch (mode) {
-            case 'signin': return 'Welcome to BAföG Bot'
-            case 'signup': return 'Join BAföG Bot'
-            case 'forgot': return 'Reset Password'
-            case 'magic-link': return 'Sign in with Magic Link'
+            case 'signin': return t('welcomeTitle')
+            case 'signup': return t('joinTitle')
+            case 'forgot': return t('resetTitle')
+            case 'magic-link': return t('magicLinkTitle')
         }
     }
 
     const getSubtitle = () => {
         switch (mode) {
-            case 'signin': return 'Sign in to get instant answers to your BAföG questions.'
-            case 'signup': return 'Create a free account to start your BAföG consultation.'
-            case 'forgot': return 'Enter your email and we\'ll send you a reset link.'
-            case 'magic-link': return 'We\'ll send you a link to sign in instantly.'
+            case 'signin': return t('signinSubtitle')
+            case 'signup': return t('signupSubtitle')
+            case 'forgot': return t('forgotSubtitle')
+            case 'magic-link': return t('magicLinkSubtitle')
         }
     }
 
     const getButtonText = () => {
         switch (mode) {
-            case 'signin': return 'Sign In'
-            case 'signup': return 'Sign Up'
-            case 'forgot': return 'Send Reset Link'
-            case 'magic-link': return 'Send Magic Link'
+            case 'signin': return t('signinBtn')
+            case 'signup': return t('signupBtn')
+            case 'forgot': return t('sendResetBtn')
+            case 'magic-link': return t('sendMagicBtn')
         }
     }
 
@@ -105,7 +110,8 @@ export default function LoginPage() {
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-background px-4 relative">
-            <div className="absolute top-4 right-4">
+            <div className="absolute top-4 right-4 flex items-center gap-2">
+                <LanguageToggle />
                 <ThemeToggle />
             </div>
             <div className="w-full max-w-md space-y-8 rounded-xl border bg-card p-10 shadow-sm">
@@ -121,7 +127,7 @@ export default function LoginPage() {
                     <div className="space-y-2">
                         <Input
                             type="email"
-                            placeholder="name@example.com"
+                            placeholder={t('emailPlaceholder')}
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             disabled={isLoading}
@@ -132,7 +138,7 @@ export default function LoginPage() {
                         <div className="space-y-2">
                             <Input
                                 type="password"
-                                placeholder="Password"
+                                placeholder={t('passwordPlaceholder')}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 disabled={isLoading}
@@ -176,14 +182,14 @@ export default function LoginPage() {
                                 onClick={() => switchMode('magic-link')}
                             >
                                 <Mail className="mr-2 h-4 w-4" />
-                                Sign in with Magic Link
+                                {t('magicLinkOption')}
                             </Button>
                             <button
                                 type="button"
                                 className="w-full text-sm text-muted-foreground hover:text-primary hover:underline"
                                 onClick={() => switchMode('forgot')}
                             >
-                                Forgot your password?
+                                {t('forgotPassword')}
                             </button>
                         </>
                     )}
@@ -195,7 +201,7 @@ export default function LoginPage() {
                             onClick={() => switchMode('signin')}
                         >
                             <ArrowLeft className="h-3 w-3" />
-                            Back to Sign In
+                            {t('backToSignIn')}
                         </button>
                     )}
 
@@ -207,8 +213,8 @@ export default function LoginPage() {
                                 onClick={() => switchMode(mode === 'signin' ? 'signup' : 'signin')}
                             >
                                 {mode === 'signin'
-                                    ? "Don't have an account? Sign Up"
-                                    : "Already have an account? Sign In"}
+                                    ? t('noAccount')
+                                    : t('hasAccount')}
                             </button>
                         </div>
                     )}

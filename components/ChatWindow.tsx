@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 import MarkdownRenderer from '@/components/markdown/MarkdownRenderer'
 import { Database } from '@/types/supabase'
+import { useLanguage } from '@/contexts/language-context'
 
 type Message = Database['public']['Tables']['messages']['Row']
 type Chat = Database['public']['Tables']['chats']['Row']
@@ -23,15 +24,11 @@ interface ChatWindowProps {
 
 // Animated thinking indicator component
 function ThinkingIndicator() {
+    const { t } = useLanguage()
     const [dotCount, setDotCount] = useState(0)
     const [phase, setPhase] = useState(0)
 
-    const phases = [
-        "Thinking",
-        "Searching BAföG database",
-        "Analyzing information",
-        "Generating response"
-    ]
+    const phases = t('phases') as string[]
 
     useEffect(() => {
         const dotInterval = setInterval(() => {
@@ -46,7 +43,7 @@ function ThinkingIndicator() {
             clearInterval(dotInterval)
             clearInterval(phaseInterval)
         }
-    }, [])
+    }, [phases.length])
 
     return (
         <div className="flex items-center gap-3 text-muted-foreground">
@@ -62,6 +59,7 @@ function ThinkingIndicator() {
 
 // Collapsible tool details component
 function ToolCallDetails({ events }: { events: any[] }) {
+    const { t } = useLanguage()
     const [isOpen, setIsOpen] = useState(false)
     const toolCalls = events.filter(evt => evt.type === 'tool_call')
 
@@ -74,7 +72,7 @@ function ToolCallDetails({ events }: { events: any[] }) {
                 className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
             >
                 <Cpu className="h-3 w-3" />
-                <span>View agent reasoning ({toolCalls.length} tool{toolCalls.length > 1 ? 's' : ''} used)</span>
+                <span>{t('viewReasoning')} ({toolCalls.length} {t('toolsUsed')})</span>
                 {isOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             </button>
 
@@ -99,6 +97,7 @@ function ToolCallDetails({ events }: { events: any[] }) {
 }
 
 export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps) {
+    const { t } = useLanguage()
     const scrollRef = useRef<HTMLDivElement>(null)
 
 
@@ -154,10 +153,16 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
         }
 
         // Auto-rename chat if it's the first message (don't refresh — that loses state!)
+        // Auto-rename chat if it's the first message
         if (messages.length === 0) {
             const newTitle = content.split('\n')[0].substring(0, 40) + (content.length > 40 ? '...' : '')
-            // Fire and forget — don't await or refresh, sidebar will update on next navigation
-            ChatService.updateChatTitle(chat.id, newTitle).catch(console.error)
+            ChatService.updateChatTitle(chat.id, newTitle)
+                .then(() => {
+                    window.dispatchEvent(new CustomEvent('chat-title-updated', {
+                        detail: { chatId: chat.id, title: newTitle }
+                    }))
+                })
+                .catch(console.error)
         }
 
         await sendMessage(content, user.id)
@@ -187,9 +192,9 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                             <div className="h-16 w-16 mb-4">
                                 <img src="/bot-avatar.svg" alt="BAföG Bot" className="w-full h-full" />
                             </div>
-                            <h3 className="text-lg font-semibold mb-2">Hallo! I'm your BAföG assistant 👋</h3>
+                            <h3 className="text-lg font-semibold mb-2">{t('greeting')}</h3>
                             <p className="text-sm text-muted-foreground max-w-md">
-                                Ask me anything about BAföG — eligibility, application process, documents, deadlines, or repayment. I speak multiple languages!
+                                {t('greetingSub')}
                             </p>
                         </div>
                     )}
@@ -242,7 +247,7 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                                                     if (evt.type === 'metrics' && evt.data?.duration) {
                                                         return (
                                                             <span key={idx} className="text-[10px] text-muted-foreground flex items-center gap-1 opacity-70">
-                                                                Generated in {evt.data.duration}s
+                                                                {t('generatedIn')} {evt.data.duration}s
                                                             </span>
                                                         )
                                                     }
@@ -275,7 +280,7 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="Ask about BAföG..."
+                        placeholder={t('inputPlaceholder')}
                         className="min-h-[50px] max-h-[200px] resize-none pr-12 py-3"
                         disabled={isLoading}
                     />
@@ -290,7 +295,7 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                 </div>
                 <div className="text-center mt-2">
                     <p className="text-[10px] text-muted-foreground">
-                        AI can make mistakes. Please verify important information.
+                        {t('aiDisclaimer')}
                     </p>
                 </div>
             </div>
