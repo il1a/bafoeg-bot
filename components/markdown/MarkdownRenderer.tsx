@@ -21,15 +21,31 @@ interface ParsedContent {
 
 // Parse content to extract sources section
 function parseContent(content: string): ParsedContent {
-    // Match "Sources:" followed by source names (could be on same line or next lines)
-    const sourcesMatch = content.match(/\*?\*?Sources:\*?\*?\s*([\s\S]*?)$/i)
+    // Find all occurrences of "Sources", "Quellen" (case insensitive)
+    // We strictly look for them at the start of a line (ignoring whitespace).
+    // The regex is permissive about markdown decoration (*, #) and colons.
+    // Matches:
+    // - Sources:
+    // - **Sources**
+    // - **Sources:**
+    // - ## Quellen
+    // - Quellen:
+    const markerRegex = /(?:^|\n)\s*[\#*]*\s*(?:Sources|Quellen)[\s:*#]*\s*(?:\n|$)/gi
+    const matches = [...content.matchAll(markerRegex)]
 
-    if (!sourcesMatch) {
+    if (matches.length === 0) {
         return { mainContent: content, sources: [] }
     }
 
-    const mainContent = content.substring(0, sourcesMatch.index).trim()
-    const sourcesText = sourcesMatch[1].trim()
+    // Take the last match
+    const lastMatch = matches[matches.length - 1]
+
+    if (lastMatch.index === undefined) {
+        return { mainContent: content, sources: [] }
+    }
+
+    const mainContent = content.substring(0, lastMatch.index).trim()
+    const sourcesText = content.substring(lastMatch.index + lastMatch[0].length).trim()
 
     // Extract individual sources - they could be:
     // - On separate lines
@@ -50,7 +66,9 @@ function parseContent(content: string): ParsedContent {
             sources.push({ name: linkMatch[1], url: linkMatch[2] })
         } else {
             // Plain text source name (no URL)
-            sources.push({ name: trimmed })
+            // Cleanup bullets if present
+            const cleanName = trimmed.replace(/^[-*•]\s+/, '')
+            sources.push({ name: cleanName })
         }
     }
 
@@ -59,10 +77,31 @@ function parseContent(content: string): ParsedContent {
 
 // Clean up source name for display
 function cleanSourceName(name: string): string {
-    return name
-        .replace(/[-_]/g, ' ')  // Replace dashes and underscores with spaces
-        .replace(/\s+/g, ' ')   // Normalize multiple spaces
-        .trim()
+    let clean = name
+
+    // 1. Decode URI if needed
+    if (clean.includes('%')) {
+        try { clean = decodeURIComponent(clean) } catch (e) { }
+    }
+
+    // 2. Remove common file extensions
+    clean = clean.replace(/\.(html|htm|php|pdf|aspx|jsp)$/i, '')
+
+    // 3. Replace separators:
+    // - Standard hyphen (-) and underscore (_)
+    // - Unicode dashes (U+2010 to U+2015, includes en-dash, em-dash, horizontal bar)
+    // - Non-breaking hyphen (U+2011) explicitly just in case
+    clean = clean.replace(/[-_\u2010-\u2015]/g, ' ')
+
+    // 4. Normalize spaces
+    clean = clean.replace(/\s+/g, ' ').trim()
+
+    // 5. Title Case (Capitalize first letter of each word)
+    return clean.split(' ').map(word => {
+        // Skip small words if desired, or just capitalize all
+        if (!word) return ''
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    }).join(' ')
 }
 
 // Source bubble component

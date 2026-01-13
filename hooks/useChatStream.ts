@@ -39,30 +39,79 @@ const RETRY_DELAY_MS = 500
 
 // Helper to clean model output
 function cleanModelOutput(rawOutput: string): string {
-    let cleanedOutput = rawOutput || ''
+    if (!rawOutput) return ''
+    let cleanedOutput = rawOutput
 
-    // Look for common markers that indicate the start of the final answer
-    const answerMarkers = [
-        /assistantfinal\s*Answer/i,
-        /\*\*Answer\*\*/i,
-        /^Answer:/im,
-        /final\s*Answer/i
+    // Priority 1: Specific "assistantfinal" markers (Logic: Take the LAST occurrence)
+    // This handles cases where the model echoes instructions containing these markers.
+    // The real answer's marker will always be after the instructions.
+    const functionalMarkers = [
+        /answer\.assistantfinal\s*(?:\*\*Antwort\*\*)?/i,
+        /answer\.assistantfinal\s*(?:\*\*Answer\*\*)?/i,
+        /assistantfinal\s*(?:\*\*Antwort\*\*)?/i,
+        /assistantfinal\s*(?:\*\*Answer\*\*)?/i,
     ]
 
-    for (const marker of answerMarkers) {
-        const match = cleanedOutput.match(marker)
-        if (match && match.index !== undefined) {
-            cleanedOutput = cleanedOutput.substring(match.index)
-            cleanedOutput = cleanedOutput.replace(/^assistantfinal\s*/i, '')
-            break
+    for (const marker of functionalMarkers) {
+        // Find all matches to select the last one
+        const matches = [...cleanedOutput.matchAll(new RegExp(marker, 'gi'))]
+        if (matches.length > 0) {
+            const lastMatch = matches[matches.length - 1]
+            if (lastMatch.index !== undefined) {
+                return cleanedOutput.substring(lastMatch.index + lastMatch[0].length).trim()
+            }
         }
     }
 
-    // If the output still contains "analysis" at the start, try to find where it ends
+    // Priority 2: Standard Markdown markers (Logic: check common formats)
+    // We check these if no functional marker is found.
+    const standardMarkers = [
+        /\*\*Antwort\*\*[:]?/i,
+        /\*\*Answer\*\*[:]?/i,
+        /^\s*Answer:/im,
+        /^\s*Antwort:/im
+    ]
+
+    for (const marker of standardMarkers) {
+        const match = cleanedOutput.match(marker)
+        if (match && match.index !== undefined) {
+            // For standard markers, we take the first match that looks "clean".
+            // However, to avoid matching "Answer section:" in instructions:
+            // 1. If it's `^Answer:`, it must be start of line.
+            // 2. If it is `**Answer**`, it's usually safe, unless instructions have it.
+
+            // If we are here, we didn't find assistantfinal.
+            // Verify it's not "Answer section:"
+            const potentialStart = cleanedOutput.substring(match.index)
+            if (potentialStart.match(/^\s*Answer section:/i)) {
+                continue // Skip this match, it's likely instructions
+            }
+
+            // Also skip if it seems to be part of a sentence like "The Answer is..." unless bolded
+            if (!marker.source.includes('\\*\\*') && !marker.source.includes('^')) {
+                // If soft match, be careful (we removed soft matches from the list above)
+            }
+
+            return potentialStart.replace(marker, '').trim() // Remove the marker itself for clean start? 
+            // Actually, keep the marker? 
+            // - `assistantfinal` -> Remove.
+            // - `**Answer**` -> Keep? Or remove?
+            // The previous code kept it (substring includes start).
+            // But `assistantfinal` removal was explicit.
+
+            // Let's remove the marker to be clean, or keep it if it's a visible header.
+            // Standard markers are usually visible headers. Let's keep them IF they are formatted nicities.
+            // But `assistantfinal` is a system token, so we removed it.
+            // `**Antwort**` is a header. Keep it.
+            return potentialStart
+        }
+    }
+
+    // Fallback: If "analysis" is at start, try detailed cleanup
     if (cleanedOutput.toLowerCase().startsWith('analysis')) {
-        const answerStart = cleanedOutput.search(/\*\*Answer\*\*|^Answer/im)
+        const answerStart = cleanedOutput.search(/\*\*Answer\*\*|\*\*Antwort\*\*|^Answer:|^Antwort:/im)
         if (answerStart > 0) {
-            cleanedOutput = cleanedOutput.substring(answerStart)
+            return cleanedOutput.substring(answerStart)
         }
     }
 
