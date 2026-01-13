@@ -184,12 +184,12 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                 <div className="flex flex-col gap-6 max-w-3xl mx-auto pb-4">
                     {messages.length === 0 && !isLoading && (
                         <div className="flex flex-col items-center justify-center p-8 text-center mt-20">
-                            <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                                <Cpu className="h-6 w-6 text-primary" />
+                            <div className="h-16 w-16 mb-4">
+                                <img src="/bot-avatar.svg" alt="BAföG Bot" className="w-full h-full" />
                             </div>
-                            <h3 className="text-lg font-semibold mb-2">How can I help you today?</h3>
+                            <h3 className="text-lg font-semibold mb-2">Hallo! I'm your BAföG assistant 👋</h3>
                             <p className="text-sm text-muted-foreground max-w-md">
-                                I'm connected to the BAföG knowledge base. Ask me anything about your application, eligibility, or documents.
+                                Ask me anything about BAföG — eligibility, application process, documents, deadlines, or repayment. I speak multiple languages!
                             </p>
                         </div>
                     )}
@@ -206,7 +206,7 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                                 <AvatarFallback className={msg.role === 'user' ? "bg-primary text-primary-foreground" : "bg-muted"}>
                                     {msg.role === 'user' ? 'U' : 'AI'}
                                 </AvatarFallback>
-                                {msg.role === 'assistant' && <AvatarImage src="/bot-avatar.png" />}
+                                {msg.role === 'assistant' && <AvatarImage src="/bot-avatar.svg" />}
                             </Avatar>
 
                             <div className={cn(
@@ -275,7 +275,7 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="Ask a question..."
+                        placeholder="Ask about BAföG..."
                         className="min-h-[50px] max-h-[200px] resize-none pr-12 py-3"
                         disabled={isLoading}
                     />

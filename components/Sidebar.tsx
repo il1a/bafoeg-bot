@@ -235,7 +235,6 @@ export function Sidebar({ initialChats = [], user }: SidebarProps) {
                     </Avatar>
                     <div className="flex flex-col overflow-hidden flex-1">
                         <span className="text-sm font-medium truncate">{user?.email}</span>
-                        <span className="text-xs text-muted-foreground truncate">Free Plan</span>
                     </div>
                     <ThemeToggle />
                 </div>

@@ -25,9 +25,9 @@ export default async function AppIndesPage() {
             <div className="rounded-full bg-muted p-4 mb-4">
                 <MessageSquarePlus className="h-8 w-8" />
             </div>
-            <h2 className="text-xl font-semibold mb-2">Welcome to Antigravity Chat</h2>
+            <h2 className="text-xl font-semibold mb-2">Welcome to BAföG Bot</h2>
             <p className="max-w-xs mx-auto mb-6">
-                Select a chat from the sidebar or start a new conversation.
+                Select a chat from the sidebar or start a new conversation to ask your BAföG questions.
             </p>
         </div>
     )

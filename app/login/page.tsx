@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { Loader2, KeyRound, ArrowLeft, Mail } from 'lucide-react'
+import { Loader2, ArrowLeft, Mail } from 'lucide-react'
 
 type AuthMode = 'signin' | 'signup' | 'forgot' | 'magic-link'
 
@@ -74,8 +75,8 @@ export default function LoginPage() {
 
     const getTitle = () => {
         switch (mode) {
-            case 'signin': return 'Welcome Back'
-            case 'signup': return 'Create an Account'
+            case 'signin': return 'Welcome to BAföG Bot'
+            case 'signup': return 'Join BAföG Bot'
             case 'forgot': return 'Reset Password'
             case 'magic-link': return 'Sign in with Magic Link'
         }
@@ -83,8 +84,8 @@ export default function LoginPage() {
 
     const getSubtitle = () => {
         switch (mode) {
-            case 'signin': return 'Enter your credentials to access the chat engine.'
-            case 'signup': return 'Enter your details to create an account.'
+            case 'signin': return 'Sign in to get instant answers to your BAföG questions.'
+            case 'signup': return 'Create a free account to start your BAföG consultation.'
             case 'forgot': return 'Enter your email and we\'ll send you a reset link.'
             case 'magic-link': return 'We\'ll send you a link to sign in instantly.'
         }
@@ -109,8 +110,8 @@ export default function LoginPage() {
             </div>
             <div className="w-full max-w-md space-y-8 rounded-xl border bg-card p-10 shadow-sm">
                 <div className="flex flex-col items-center gap-2 text-center">
-                    <div className="h-10 w-10 text-primary bg-primary/10 rounded-full flex items-center justify-center mb-2">
-                        {mode === 'magic-link' ? <Mail className="h-5 w-5" /> : <KeyRound className="h-5 w-5" />}
+                    <div className="h-16 w-16 mb-2">
+                        <Image src="/bot-avatar.svg" alt="BAföG Bot" width={64} height={64} priority />
                     </div>
                     <h1 className="text-2xl font-bold tracking-tight">{getTitle()}</h1>
                     <p className="text-sm text-muted-foreground">{getSubtitle()}</p>
