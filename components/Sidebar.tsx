@@ -112,15 +112,15 @@ export function Sidebar({ initialChats = [], user }: SidebarProps) {
                 </Button>
             </div>
 
-            <ScrollArea className="flex-1">
-                <div className="p-2 gap-2 flex flex-col">
+            <ScrollArea className="flex-1 w-full">
+                <div className="p-2 gap-2 flex flex-col w-full overflow-hidden">
                     {chats.map((chat) => (
-                        <div key={chat.id} className="flex flex-col">
+                        <div key={chat.id} className="flex flex-col w-full overflow-hidden">
                             {/* Main chat row */}
-                            <div className="group relative flex items-center">
+                            <div className="group relative w-full overflow-hidden">
                                 {editingChatId === chat.id ? (
                                     /* Inline rename input */
-                                    <div className="flex-1 flex items-center gap-2 px-3 py-2">
+                                    <div className="flex items-center gap-1 px-3 py-2 bg-accent rounded-md max-w-[260px]">
                                         <MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground" />
                                         <input
                                             ref={editInputRef}
@@ -134,12 +134,12 @@ export function Sidebar({ initialChats = [], user }: SidebarProps) {
                                                     cancelEditing()
                                                 }
                                             }}
-                                            className="flex-1 text-sm bg-transparent border-b border-primary focus:outline-none"
+                                            className="flex-1 min-w-0 text-sm bg-transparent border-b border-primary focus:outline-none"
                                         />
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="h-6 w-6 text-green-500 hover:text-green-600 hover:bg-green-500/10"
+                                            className="h-6 w-6 shrink-0 text-green-500 hover:text-green-600 hover:bg-green-500/10"
                                             onClick={() => handleRenameChat(chat.id)}
                                         >
                                             <Check className="h-3 w-3" />
@@ -147,30 +147,34 @@ export function Sidebar({ initialChats = [], user }: SidebarProps) {
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                            className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground"
                                             onClick={cancelEditing}
                                         >
                                             <X className="h-3 w-3" />
                                         </Button>
                                     </div>
                                 ) : (
-                                    /* Normal chat row with action buttons */
-                                    <div
-                                        className={cn(
-                                            "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer",
-                                            pathname === `/app/${chat.id}` ? "bg-accent text-accent-foreground" : "text-muted-foreground"
-                                        )}
-                                        onClick={() => router.push(`/app/${chat.id}`)}
-                                    >
-                                        <MessageSquare className="h-4 w-4 shrink-0" />
-                                        <span className="flex-1 truncate min-w-0">{chat.title || 'Untitled Chat'}</span>
+                                    <>
+                                        {/* Normal chat row */}
+                                        <div
+                                            className={cn(
+                                                "flex items-center gap-2 pl-3 pr-14 py-2 text-sm font-medium rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer max-w-[260px]",
+                                                pathname === `/app/${chat.id}` ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                                            )}
+                                            onClick={() => router.push(`/app/${chat.id}`)}
+                                        >
+                                            <MessageSquare className="h-4 w-4 shrink-0" />
+                                            <span className="flex-1 truncate min-w-0">{chat.title || 'Untitled Chat'}</span>
+                                        </div>
 
-                                        {/* Action buttons - visible on hover */}
-                                        <div className="flex items-center shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-                                            {/* Rename button */}
+                                        {/* Action buttons - positioned relative to parent wrapper */}
+                                        <div className={cn(
+                                            "absolute right-1 top-1/2 -translate-y-1/2 flex items-center rounded px-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150",
+                                            pathname === `/app/${chat.id}` ? "bg-accent" : "group-hover:bg-accent"
+                                        )}>
                                             <button
                                                 type="button"
-                                                className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-green-500 hover:bg-green-500/10"
+                                                className="h-6 w-6 flex items-center justify-center rounded text-muted-foreground hover:text-green-500 hover:bg-green-500/10"
                                                 onClick={(e) => {
                                                     e.stopPropagation()
                                                     startEditing(chat)
@@ -178,10 +182,9 @@ export function Sidebar({ initialChats = [], user }: SidebarProps) {
                                             >
                                                 <Pencil className="h-3.5 w-3.5" />
                                             </button>
-                                            {/* Delete button */}
                                             <button
                                                 type="button"
-                                                className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
+                                                className="h-6 w-6 flex items-center justify-center rounded text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
                                                 onClick={(e) => {
                                                     e.stopPropagation()
                                                     setConfirmingDeleteId(chat.id)
@@ -191,7 +194,7 @@ export function Sidebar({ initialChats = [], user }: SidebarProps) {
                                                 <Trash2 className="h-3.5 w-3.5" />
                                             </button>
                                         </div>
-                                    </div>
+                                    </>
                                 )}
                             </div>
 
