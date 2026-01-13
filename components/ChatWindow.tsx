@@ -204,7 +204,7 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                         >
                             <Avatar className="h-8 w-8 mt-1 border">
                                 <AvatarFallback className={msg.role === 'user' ? "bg-primary text-primary-foreground" : "bg-muted"}>
-                                    {msg.role === 'user' ? 'U' : 'AI'}
+                                    {msg.role === 'user' ? user?.email?.[0]?.toUpperCase() || 'U' : 'AI'}
                                 </AvatarFallback>
                                 {msg.role === 'assistant' && <AvatarImage src="/bot-avatar.svg" />}
                             </Avatar>
