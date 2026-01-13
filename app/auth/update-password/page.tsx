@@ -6,6 +6,7 @@ import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Loader2, KeyRound, CheckCircle2 } from 'lucide-react'
+import { AccessibilitySettings } from '@/components/accessibility-settings'
 
 export default function UpdatePasswordPage() {
     const [password, setPassword] = useState('')
@@ -70,7 +71,10 @@ export default function UpdatePasswordPage() {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="flex min-h-screen items-center justify-center bg-background px-4 relative">
+            <div className="absolute top-4 right-4 flex items-center gap-2">
+                <AccessibilitySettings showEasyLanguage={false} />
+            </div>
             <div className="w-full max-w-md space-y-8 rounded-xl border bg-card p-10 shadow-sm">
                 <div className="flex flex-col items-center gap-2 text-center">
                     <div className="h-10 w-10 text-primary bg-primary/10 rounded-full flex items-center justify-center mb-2">

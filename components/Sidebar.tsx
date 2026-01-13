@@ -13,6 +13,7 @@ import { useEffect, useState, useRef } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { LanguageToggle } from './language-toggle'
+import { AccessibilitySettings } from '@/components/accessibility-settings'
 import { useLanguage } from '@/contexts/language-context'
 
 type Chat = Database['public']['Tables']['chats']['Row']
@@ -253,6 +254,7 @@ export function Sidebar({ initialChats = [], user }: SidebarProps) {
                     <div className="flex flex-col overflow-hidden flex-1">
                         <span className="text-sm font-medium truncate">{user?.email}</span>
                     </div>
+                    <AccessibilitySettings />
                     <LanguageToggle />
                     <ThemeToggle />
                 </div>

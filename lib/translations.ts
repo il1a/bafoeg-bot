@@ -57,7 +57,15 @@ export const translations = {
             "Searching BAföG database",
             "Analyzing information",
             "Generating response"
-        ]
+        ],
+
+        // Accessibility
+        accessibilityTitle: "Accessibility Settings",
+        appearance: "Appearance",
+        textSize: "Text Size",
+        languageMode: "Language Mode",
+        simpleLanguage: "Simple Language",
+        simpleLanguageDesc: "Simplifies answers for better readability."
     },
     de: {
         // Sidebar
@@ -115,7 +123,15 @@ export const translations = {
             "Durchsuche BAföG-Datenbank",
             "Analysiere Informationen",
             "Generiere Antwort"
-        ]
+        ],
+
+        // Accessibility
+        accessibilityTitle: "Barrierefreiheit Einstellungen",
+        appearance: "Erscheinungsbild",
+        textSize: "Textgröße",
+        languageMode: "Sprachmodus",
+        simpleLanguage: "Leichte Sprache",
+        simpleLanguageDesc: "Vereinfacht Antworten für bessere Lesbarkeit."
     }
 }
 

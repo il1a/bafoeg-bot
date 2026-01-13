@@ -12,6 +12,7 @@ import { Loader2, ArrowLeft, Mail } from 'lucide-react'
 type AuthMode = 'signin' | 'signup' | 'forgot' | 'magic-link'
 
 import { LanguageToggle } from '@/components/language-toggle'
+import { AccessibilitySettings } from '@/components/accessibility-settings'
 import { useLanguage } from '@/contexts/language-context'
 
 export default function LoginPage() {
@@ -111,6 +112,7 @@ export default function LoginPage() {
     return (
         <div className="flex min-h-screen items-center justify-center bg-background px-4 relative">
             <div className="absolute top-4 right-4 flex items-center gap-2">
+                <AccessibilitySettings showEasyLanguage={false} />
                 <LanguageToggle />
                 <ThemeToggle />
             </div>

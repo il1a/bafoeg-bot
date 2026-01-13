@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { Database } from '@/types/supabase'
+import { useAccessibility } from '@/contexts/accessibility-context'
 
 type Message = Database['public']['Tables']['messages']['Row']
 
@@ -71,6 +72,7 @@ function cleanModelOutput(rawOutput: string): string {
 export function useChatStream({ sessionId, chatId, onMessageComplete }: UseChatStreamProps) {
     const [messages, setMessages] = useState<Message[]>([])
     const [isLoading, setIsLoading] = useState(false)
+    const { isEasyLanguage } = useAccessibility()
 
     const sendMessage = useCallback(async (content: string, userId: string) => {
         setIsLoading(true)
@@ -119,7 +121,9 @@ export function useChatStream({ sessionId, chatId, onMessageComplete }: UseChatS
                         sessionId,
                         chatId,
                         userId,
-                        message: content
+                        message: isEasyLanguage
+                            ? `${content}\n\n[System Note: The user has requested Simple Language (Leichte Sprache). Please keep your response very simple, short, and easy to understand using basic vocabulary. Avoid complex sentence structures.]`
+                            : content
                     }),
                 })
 
