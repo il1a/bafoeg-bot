@@ -115,7 +115,7 @@ export function Sidebar({ initialChats = [], user }: SidebarProps) {
     }
 
     return (
-        <div className="flex flex-col h-full border-r bg-muted/10">
+        <div className="flex flex-col h-full bg-muted/10">
             <div className="p-4 h-14 flex items-center border-b">
                 <Button
                     onClick={handleNewChat}
@@ -127,8 +127,8 @@ export function Sidebar({ initialChats = [], user }: SidebarProps) {
                 </Button>
             </div>
 
-            <ScrollArea className="flex-1 w-full">
-                <div className="p-2 gap-2 flex flex-col w-full overflow-hidden">
+            <ScrollArea className="flex-1 w-full min-h-0">
+                <div className="p-2 gap-2 flex flex-col w-full">
                     {chats.map((chat) => (
                         <div key={chat.id} className="flex flex-col w-full overflow-hidden">
                             {/* Main chat row */}

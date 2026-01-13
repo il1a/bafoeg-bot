@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { Sidebar } from '@/components/Sidebar'
+import { AppShell } from '@/components/AppShell'
 import { Toaster } from 'sonner'
 
 export default async function AppLayout({
@@ -26,14 +27,9 @@ export default async function AppLayout({
         .order('updated_at', { ascending: false })
 
     return (
-        <div className="flex h-screen w-full bg-background">
-            <aside className="w-[280px] hidden md:block h-full">
-                <Sidebar initialChats={chats || []} user={user} />
-            </aside>
-            <main className="flex-1 flex flex-col h-full overflow-hidden">
-                {children}
-            </main>
+        <AppShell sidebar={<Sidebar initialChats={chats || []} user={user} />}>
+            {children}
             <Toaster />
-        </div>
+        </AppShell>
     )
 }
