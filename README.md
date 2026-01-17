@@ -109,40 +109,64 @@ flowchart TB
 
 ## Getting Started
 
-### Prerequisites
+BAföG Bot is a full-stack application consisting of three main components:
+1. **Frontend**: This Next.js repository.
+2. **Persistence & Auth**: A Supabase project.
+3. **RAG Backend**: An n8n workflow connected to a Vector Database (Qdrant).
 
-- Node.js 18+
-- npm or pnpm
-- Supabase project (for auth & database)
-- n8n instance with BAföG workflow configured
+### Environment Setup
 
-### Installation
+To run this project, you will need to create a `.env.local` file based on the provided template:
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-org/bafoeg-bot.git
-cd bafoeg-bot
+cp .env.example .env.local
+```
 
+| Variable | Description | Location |
+|----------|-------------|----------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase Project URL | Supabase Dashboard |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase Anon Key | Supabase Dashboard |
+| `N8N_WEBHOOK_URL` | The URL of your n8n webhook | n8n Workflow |
+| `N8N_WEBHOOK_SECRET` | The header auth secret (`bafoeg-webhook-key`) | n8n Webhook Node |
+
+### Local Development
+
+Since the production RAG backend is private, you have two options for local development:
+
+#### 1. Mock Mode (Recommended for UI/UX)
+Set `MOCK_N8N=true` in your `.env.local`. This iterates on the frontend using simulated responses without needing a running backend.
+
+#### 2. Full Stack Self-Hosting
+If you wish to contribute to the RAG logic or run your own instance:
+- **n8n**: Import the workflow template from the [`n8n/`](n8n/) directory.
+- **Vector DB**: Set up a Qdrant collection and populate it with BAföG documents.
+- **LLM**: Configure your own API keys in the imported n8n nodes.
+
+---
+
+## RAG Pipeline & n8n Workflow
+
+For full transparency, the core RAG logic is available in the [`n8n/`](n8n/) directory. This workflow handles:
+- **Multilingual Query Processing**: Detecting and responding in the user's language.
+- **Vector Search**: Querying Qdrant for relevant BAföG legislation snippets.
+- **Contextual Reasoning**: Passing retrieved context to the LLM via OpenRouter.
+- **Intermediate Steps**: Streaming the agent's thought process back to the UI.
+
+We encourage developers to fork the workflow and adapt it for other public service domains!
+
+---
+
+## Installation & Running
+
+```bash
 # Install dependencies
 npm install
-
-# Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your Supabase credentials and n8n webhook URL
 
 # Run development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the app.
-
-### Environment Variables
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-NEXT_PUBLIC_N8N_WEBHOOK_URL=your-n8n-webhook-url
-```
+The app will be available at `http://localhost:3000`.
 
 ---
 

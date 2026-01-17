@@ -7,10 +7,40 @@ export async function POST(req: Request) {
         const body = await req.json()
         console.log('[Proxy] Forwarding request to n8n:', body)
 
-        const response = await fetch('https://n8n.ilia.work/webhook/c1153e57-dd47-41e2-ab42-3fa7b174a61e', {
+        // Validate environment variables
+        const webhookUrl = process.env.N8N_WEBHOOK_URL
+        const webhookSecret = process.env.N8N_WEBHOOK_SECRET
+
+        // Mock Mode for local development without backend keys
+        if (process.env.MOCK_N8N === 'true') {
+            console.log('[Proxy] Mock mode active. Returning simulated response.')
+            await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate network lag
+            return NextResponse.json({
+                output: "assistantfinal **Antwort**\n\nDies ist eine simulierte Antwort des BAföG-Bots, da der Mock-Modus aktiviert ist. In einer echten Umgebung würde hier das Ergebnis der RAG-Pipeline von n8n stehen.",
+                intermediateSteps: [
+                    {
+                        action: { tool: "Mock Search", toolInput: "BAföG Grundbedarf", log: "Searching mock database...", toolCallId: "123", type: "search" },
+                        observation: "Found pseudo-information about BAföG thresholds."
+                    }
+                ]
+            })
+        }
+
+        if (!webhookUrl) {
+            console.error('[Proxy] Missing N8N_WEBHOOK_URL environment variable')
+            return NextResponse.json({ error: 'Webhook configuration missing' }, { status: 500 })
+        }
+
+        if (!webhookSecret) {
+            console.error('[Proxy] Missing N8N_WEBHOOK_SECRET environment variable')
+            return NextResponse.json({ error: 'Webhook authentication missing' }, { status: 500 })
+        }
+
+        const response = await fetch(webhookUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'bafoeg-webhook-key': webhookSecret,
             },
             body: JSON.stringify(body),
         })
