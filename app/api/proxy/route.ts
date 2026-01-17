@@ -7,7 +7,7 @@ export async function POST(req: Request) {
         const body = await req.json()
         console.log('[Proxy] Forwarding request to n8n:', body)
 
-        const response = await fetch('https://n8n.ilia.work/webhook/019ba917-976f-4cef-946f-789f492f7351', {
+        const response = await fetch('https://n8n.ilia.work/webhook/c1153e57-dd47-41e2-ab42-3fa7b174a61e', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

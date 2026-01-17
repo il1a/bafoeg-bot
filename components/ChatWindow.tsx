@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Send, StopCircle, ChevronDown, ChevronUp, Cpu, Sparkles, FileText, BrainCircuit, Loader2 } from 'lucide-react'
-import { useChatStream } from '@/hooks/useChatStream'
+import { Send, StopCircle, ChevronDown, ChevronUp, Cpu, Sparkles, FileText, BrainCircuit, Loader2, Paperclip, X } from 'lucide-react'
+import { useChatStream, FileAttachment } from '@/hooks/useChatStream'
 import { ChatService } from '@/services/chatService'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -145,21 +145,87 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
     }, [initialMessages, setMessages])
 
     const [input, setInput] = useState('')
+    const [attachedFile, setAttachedFile] = useState<File | null>(null)
+    const [filePreview, setFilePreview] = useState<string | null>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
+
+    const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+    const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf']
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        if (!ACCEPTED_TYPES.includes(file.type)) {
+            alert('Please select a PNG, JPEG, WebP, or PDF file.')
+            return
+        }
+
+        if (file.size > MAX_FILE_SIZE) {
+            alert('File is too large. Maximum size is 5MB.')
+            return
+        }
+
+        setAttachedFile(file)
+
+        // Create preview for images
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader()
+            reader.onload = (e) => setFilePreview(e.target?.result as string)
+            reader.readAsDataURL(file)
+        } else {
+            setFilePreview(null)
+        }
+    }
+
+    const removeAttachment = () => {
+        setAttachedFile(null)
+        setFilePreview(null)
+        if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+
+    const fileToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => {
+                const result = reader.result as string
+                // Remove data URL prefix to get raw base64
+                const base64 = result.split(',')[1]
+                resolve(base64)
+            }
+            reader.onerror = reject
+            reader.readAsDataURL(file)
+        })
+    }
 
     const handleSubmit = async (e?: React.FormEvent) => {
         e?.preventDefault()
-        if (!input.trim() || isLoading) return
+        if ((!input.trim() && !attachedFile) || isLoading) return
 
         const content = input.trim()
         setInput('')
 
+        // Prepare file attachment if present
+        let files: FileAttachment[] | undefined
+        if (attachedFile) {
+            const base64Data = await fileToBase64(attachedFile)
+            files = [{
+                name: attachedFile.name,
+                mimeType: attachedFile.type,
+                base64Data
+            }]
+            removeAttachment()
+        }
+
         // Save User Message to DB immediately (fire and forget or await)
+        // Store lightweight attachment metadata (no base64) for display after reload
         try {
             await ChatService.saveMessage({
                 chat_id: chat.id,
                 user_id: user.id,
                 role: 'user',
-                content: content,
+                content: content || (files ? `[Attached: ${files[0].name}]` : ''),
+                events: files && files.length > 0 ? [{ type: 'attachment', data: { name: files[0].name, mimeType: files[0].mimeType } }] : null,
                 status: 'complete'
             })
         } catch (e) {
@@ -168,7 +234,7 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
 
         // Auto-rename chat if it's the first message
         if (messages.length === 0) {
-            const newTitle = content.split('\n')[0].substring(0, 40) + (content.length > 40 ? '...' : '')
+            const newTitle = (content || attachedFile?.name || 'New Chat').split('\n')[0].substring(0, 40) + ((content?.length || 0) > 40 ? '...' : '')
             ChatService.updateChatTitle(chat.id, newTitle)
                 .then(() => {
                     window.dispatchEvent(new CustomEvent('chat-title-updated', {
@@ -178,7 +244,7 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                 .catch(console.error)
         }
 
-        await sendMessage(content, user.id)
+        await sendMessage(content || '[Document attached]', user.id, files)
     }
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -272,6 +338,23 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                                 {/* User message */}
                                 {msg.role === 'user' && (
                                     <div className="rounded-2xl px-4 py-3 text-sm shadow-sm bg-primary text-primary-foreground rounded-tr-sm">
+                                        {/* Attachment preview */}
+                                        {msg.events && (msg.events as any[]).some(e => e.type === 'attachment') && (
+                                            <div className="mb-2 pb-2 border-b border-primary-foreground/20">
+                                                {(msg.events as any[]).filter(e => e.type === 'attachment').map((evt, idx) => (
+                                                    <div key={idx} className="flex items-center gap-2">
+                                                        {evt.data?.preview ? (
+                                                            <img src={evt.data.preview} alt="Attachment" className="h-16 w-16 object-cover rounded" />
+                                                        ) : (
+                                                            <div className="h-10 w-10 bg-primary-foreground/20 rounded flex items-center justify-center">
+                                                                <FileText className="h-5 w-5" />
+                                                            </div>
+                                                        )}
+                                                        <span className="text-xs opacity-80 truncate max-w-[150px]">{evt.data?.name}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                         <div className="whitespace-pre-wrap">{msg.content}</div>
                                     </div>
                                 )}
@@ -286,19 +369,64 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
 
             {/* Input Area */}
             <div className="p-4 border-t bg-background/80 backdrop-blur-sm z-10 w-full max-w-3xl mx-auto">
+                {/* File Preview */}
+                {attachedFile && (
+                    <div className="mb-2 flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                        {filePreview ? (
+                            <img src={filePreview} alt="Preview" className="h-12 w-12 object-cover rounded" />
+                        ) : (
+                            <div className="h-12 w-12 bg-muted rounded flex items-center justify-center">
+                                <FileText className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{attachedFile.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                                {(attachedFile.size / 1024).toFixed(1)} KB
+                            </p>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 shrink-0"
+                            onClick={removeAttachment}
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                )}
+
+                {/* Hidden file input */}
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".png,.jpg,.jpeg,.webp,.pdf"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                />
+
                 <div className="relative flex gap-2">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute left-2 bottom-2 h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isLoading}
+                    >
+                        <Paperclip className="h-4 w-4" />
+                    </Button>
                     <Textarea
                         ref={textareaRef}
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
                         placeholder={t('inputPlaceholder' as any)}
-                        className="min-h-[50px] max-h-[200px] resize-none pr-12 py-3 rounded-xl border-muted-foreground/20 focus-visible:ring-1"
+                        className="min-h-[50px] max-h-[200px] resize-none pl-12 pr-12 py-3 rounded-xl border-muted-foreground/20 focus-visible:ring-1"
                         disabled={isLoading}
                     />
                     <Button
                         onClick={() => handleSubmit()}
-                        disabled={!input.trim() || isLoading}
+                        disabled={(!input.trim() && !attachedFile) || isLoading}
                         size="icon"
                         className="absolute right-2 bottom-2 h-8 w-8 rounded-lg"
                     >

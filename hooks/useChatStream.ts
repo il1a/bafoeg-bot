@@ -34,6 +34,13 @@ interface UseChatStreamProps {
     onMessageComplete?: (message: Message) => void
 }
 
+// File attachment for document uploads
+export interface FileAttachment {
+    name: string
+    mimeType: string
+    base64Data: string
+}
+
 const MAX_RETRIES = 3
 const RETRY_DELAY_MS = 500
 
@@ -123,18 +130,19 @@ export function useChatStream({ sessionId, chatId, onMessageComplete }: UseChatS
     const [isLoading, setIsLoading] = useState(false)
     const { isEasyLanguage } = useAccessibility()
 
-    const sendMessage = useCallback(async (content: string, userId: string) => {
+    const sendMessage = useCallback(async (content: string, userId: string, files?: FileAttachment[]) => {
         setIsLoading(true)
         const requestStartTime = Date.now()
 
         // 1. Add User Message immediately (Optimistic)
+        // Include file attachment info for display in the message bubble (no preview for consistency)
         const userMessage: Message = {
             id: uuidv4(),
             chat_id: chatId,
             user_id: userId,
             role: 'user',
             content,
-            events: null,
+            events: files && files.length > 0 ? [{ type: 'attachment', data: { name: files[0].name, mimeType: files[0].mimeType } }] : null,
             status: 'complete',
             created_at: new Date().toISOString()
         }
@@ -172,7 +180,8 @@ export function useChatStream({ sessionId, chatId, onMessageComplete }: UseChatS
                         userId,
                         message: isEasyLanguage
                             ? `${content}\n\n[System Note: The user has requested Simple Language (Leichte Sprache). Please keep your response very simple, short, and easy to understand using basic vocabulary. Avoid complex sentence structures.]`
-                            : content
+                            : content,
+                        files: files && files.length > 0 ? files : undefined
                     }),
                 })
 
