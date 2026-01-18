@@ -65,7 +65,12 @@ export const translations = {
         textSize: "Text Size",
         languageMode: "Language Mode",
         simpleLanguage: "Simple Language",
-        simpleLanguageDesc: "Simplifies answers for better readability."
+        simpleLanguageDesc: "Simplifies answers for better readability.",
+
+        // Incognito Mode
+        tryWithoutAccount: "Try without account",
+        incognitoBanner: "You're in incognito mode. Your chat will disappear when you close this tab.",
+        signUpToSave: "Sign up to save"
     },
     de: {
         // Sidebar
@@ -131,7 +136,12 @@ export const translations = {
         textSize: "Textgröße",
         languageMode: "Sprachmodus",
         simpleLanguage: "Leichte Sprache",
-        simpleLanguageDesc: "Vereinfacht Antworten für bessere Lesbarkeit."
+        simpleLanguageDesc: "Vereinfacht Antworten für bessere Lesbarkeit.",
+
+        // Incognito Mode
+        tryWithoutAccount: "Ohne Konto testen",
+        incognitoBanner: "Du bist im Inkognito-Modus. Dein Chat verschwindet, wenn du diesen Tab schließt.",
+        signUpToSave: "Registrieren zum Speichern"
     }
 }
 
