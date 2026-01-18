@@ -39,6 +39,8 @@ export interface FileAttachment {
     name: string
     mimeType: string
     base64Data: string
+    extractedText?: string      // Pre-extracted text from PDFs (client-side)
+    textExtractionSuccess?: boolean  // True if text was successfully extracted
 }
 
 const MAX_RETRIES = 3

@@ -70,7 +70,15 @@ export const translations = {
         // Incognito Mode
         tryWithoutAccount: "Try without account",
         incognitoBanner: "You're in incognito mode. Your chat will disappear when you close this tab.",
-        signUpToSave: "Sign up to save"
+        signUpToSave: "Sign up to save",
+
+        // Upload Disclaimer
+        uploadInfo: "File Upload Info",
+        uploadDisclaimer: "• One file at a time (max 5MB)\n• Supported: PNG, JPG, WebP, PDF\n• Text PDFs: Full text extracted instantly\n• Scanned/image PDFs: First 5 pages processed via OCR (slower)\n\nTip: Use standard text PDFs for best results!",
+
+        // Footer
+        privacyPolicy: "Privacy Policy",
+        impressum: "Legal Notice"
     },
     de: {
         // Sidebar
@@ -141,7 +149,15 @@ export const translations = {
         // Incognito Mode
         tryWithoutAccount: "Ohne Konto testen",
         incognitoBanner: "Du bist im Inkognito-Modus. Dein Chat verschwindet, wenn du diesen Tab schließt.",
-        signUpToSave: "Registrieren zum Speichern"
+        signUpToSave: "Registrieren zum Speichern",
+
+        // Upload Disclaimer
+        uploadInfo: "Datei-Upload Info",
+        uploadDisclaimer: "• Eine Datei gleichzeitig (max. 5MB)\n• Unterstützt: PNG, JPG, WebP, PDF\n• Text-PDFs: Text wird sofort extrahiert\n• Gescannte PDFs: Erste 5 Seiten per OCR verarbeitet (langsamer)\n\nTipp: Verwende Standard-Text-PDFs für beste Ergebnisse!",
+
+        // Footer
+        privacyPolicy: "Datenschutzerklärung",
+        impressum: "Impressum"
     }
 }
 

@@ -1,6 +1,11 @@
+'use client'
+
 import Link from "next/link";
+import { useLanguage } from '@/contexts/language-context'
 
 export function Footer() {
+    const { t } = useLanguage()
+
     return (
         <footer className="w-full border-t border-border bg-background/80 backdrop-blur-sm">
             <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
@@ -15,13 +20,13 @@ export function Footer() {
                         href="/impressum"
                         className="hover:text-foreground transition-colors"
                     >
-                        Impressum
+                        {t('impressum')}
                     </Link>
                     <Link
                         href="/datenschutz"
                         className="hover:text-foreground transition-colors"
                     >
-                        Datenschutz
+                        {t('privacyPolicy')}
                     </Link>
                     <a
                         href="https://github.com/il1a/bafoeg-bot"

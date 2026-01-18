@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Send, StopCircle, ChevronDown, ChevronUp, Cpu, Sparkles, FileText, BrainCircuit, Loader2, Paperclip, X } from 'lucide-react'
+import { Send, StopCircle, ChevronDown, ChevronUp, Cpu, Sparkles, FileText, BrainCircuit, Loader2, Paperclip, X, Info } from 'lucide-react'
 import { useChatStream, FileAttachment } from '@/hooks/useChatStream'
 import { ChatService } from '@/services/chatService'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,7 @@ import MarkdownRenderer from '@/components/markdown/MarkdownRenderer'
 import { Database } from '@/types/supabase'
 import { useLanguage } from '@/contexts/language-context'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { extractPdfText, isPdf } from '@/utils/pdf-extractor'
 
 type Message = Database['public']['Tables']['messages']['Row']
 type Chat = Database['public']['Tables']['chats']['Row']
@@ -147,6 +148,7 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
     const [input, setInput] = useState('')
     const [attachedFile, setAttachedFile] = useState<File | null>(null)
     const [filePreview, setFilePreview] = useState<string | null>(null)
+    const [showUploadInfo, setShowUploadInfo] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
@@ -209,10 +211,25 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
         let files: FileAttachment[] | undefined
         if (attachedFile) {
             const base64Data = await fileToBase64(attachedFile)
+
+            // For PDFs, attempt client-side text extraction
+            let extractedText: string | undefined
+            let textExtractionSuccess = false
+
+            if (isPdf(attachedFile.type)) {
+                console.log('[PDF] Attempting client-side text extraction...')
+                const extraction = await extractPdfText(attachedFile)
+                extractedText = extraction.text
+                textExtractionSuccess = extraction.success
+                console.log(`[PDF] Extraction result: ${extraction.pageCount} pages, ${extraction.averageCharsPerPage.toFixed(0)} avg chars/page, success: ${extraction.success}`)
+            }
+
             files = [{
                 name: attachedFile.name,
                 mimeType: attachedFile.type,
-                base64Data
+                base64Data,
+                extractedText,
+                textExtractionSuccess
             }]
             removeAttachment()
         }
@@ -433,11 +450,29 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                         {isLoading ? <StopCircle className="h-4 w-4" /> : <Send className="h-4 w-4" />}
                     </Button>
                 </div>
-                <div className="text-center mt-2">
+                <div className="flex items-center justify-center gap-2 mt-2">
                     <p className="text-[10px] text-muted-foreground">
                         {t('aiDisclaimer' as any)}
                     </p>
+                    <button
+                        onClick={() => setShowUploadInfo(!showUploadInfo)}
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                        title={t('uploadInfo' as any)}
+                    >
+                        <Info className="h-3 w-3" />
+                    </button>
                 </div>
+                {showUploadInfo && (
+                    <div className="mt-2 p-3 bg-muted/50 rounded-lg border text-xs text-muted-foreground whitespace-pre-line">
+                        <div className="flex justify-between items-start mb-1">
+                            <span className="font-medium text-foreground">{t('uploadInfo' as any)}</span>
+                            <button onClick={() => setShowUploadInfo(false)} className="hover:text-foreground">
+                                <X className="h-3 w-3" />
+                            </button>
+                        </div>
+                        {t('uploadDisclaimer' as any)}
+                    </div>
+                )}
             </div>
         </div>
     )
