@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { Send, StopCircle, Sparkles, Loader2, LogIn, UserPlus, Paperclip, FileText, X, Info } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,8 @@ import { useLanguage } from '@/contexts/language-context'
 import { useAccessibility } from '@/contexts/accessibility-context'
 import Link from 'next/link'
 import { extractPdfText, isPdf } from '@/utils/pdf-extractor'
+import { SurveyBanner } from '@/components/SurveyBanner'
+import { SurveyModal } from '@/components/SurveyModal'
 
 // Ephemeral message type (no DB schema dependency)
 interface EphemeralMessage {
@@ -140,6 +142,11 @@ export function IncognitoChatWindow() {
     const [attachedFile, setAttachedFile] = useState<File | null>(null)
     const [filePreview, setFilePreview] = useState<string | null>(null)
     const [showUploadInfo, setShowUploadInfo] = useState(false)
+
+    // Count assistant messages for survey triggers
+    const assistantMessageCount = useMemo(() => {
+        return messages.filter(msg => msg.role === 'assistant').length
+    }, [messages])
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -352,6 +359,9 @@ export function IncognitoChatWindow() {
                 </Link>
             </div>
 
+            {/* Survey Banner - sticky at top, appears after 3 bot messages */}
+            <SurveyBanner messageCount={assistantMessageCount} threshold={3} />
+
             {/* Messages */}
             <ScrollArea className="flex-1 w-full min-h-0">
                 <div className="flex flex-col gap-6 p-4 pb-32 max-w-3xl mx-auto">
@@ -363,6 +373,17 @@ export function IncognitoChatWindow() {
                             <h3 className="text-lg font-semibold mb-2">{t('greeting' as any)}</h3>
                             <p className="text-sm text-muted-foreground max-w-md">
                                 {t('greetingSub' as any)}
+                            </p>
+                            <p className="text-xs text-muted-foreground/70 max-w-md mt-3">
+                                {t('surveyWelcome' as any)}
+                                <a
+                                    href="https://umfragenup.uni-potsdam.de/Bafoeg_chatbot/"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary hover:underline"
+                                >
+                                    {t('surveyWelcomeLink' as any)}
+                                </a>
                             </p>
                         </div>
                     )}
@@ -515,6 +536,9 @@ export function IncognitoChatWindow() {
                     </div>
                 )}
             </div>
+
+            {/* Survey Modal - appears once after 10+ messages */}
+            <SurveyModal messageCount={assistantMessageCount} threshold={10} />
         </div>
     )
 }

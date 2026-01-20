@@ -78,7 +78,25 @@ export const translations = {
 
         // Footer
         privacyPolicy: "Privacy Policy",
-        impressum: "Legal Notice"
+        impressum: "Legal Notice",
+
+        // Survey & Feedback
+        feedback: "Feedback",
+        feedbackModalTitle: "We Value Your Feedback",
+        feedbackModalDesc: "Help us improve BAföG Bot by sharing your experience!",
+        takeSurvey: "Take Survey (5 min)",
+        surveyDescription: "Share your experience in our anonymous user survey. Your feedback helps us improve the chatbot for all students.",
+        emailFeedback: "Email Us",
+        emailDescription: "Have additional feedback or feature requests? Contact us directly at:",
+        closeModal: "Close",
+        surveyBannerText: "Enjoying the chat? Help us improve with a ",
+        surveyBannerLink: "5-minute survey",
+        surveyWelcome: "After testing, we'd love your feedback via our ",
+        surveyWelcomeLink: "anonymous survey",
+        surveyModalTitle: "Help Us Improve! 🎯",
+        surveyModalText: "You've been using BAföG Bot for a bit now. Would you mind sharing your experience in a quick survey? It only takes 5 minutes and helps us serve students better.",
+        surveyModalButton: "Take the Survey",
+        surveyModalLater: "Maybe Later"
     },
     de: {
         // Sidebar
@@ -157,8 +175,27 @@ export const translations = {
 
         // Footer
         privacyPolicy: "Datenschutzerklärung",
-        impressum: "Impressum"
+        impressum: "Impressum",
+
+        // Survey & Feedback
+        feedback: "Feedback",
+        feedbackModalTitle: "Wir schätzen dein Feedback",
+        feedbackModalDesc: "Hilf uns, den BAföG Bot zu verbessern, indem du deine Erfahrungen teilst!",
+        takeSurvey: "Umfrage ausfüllen (5 Min.)",
+        surveyDescription: "Teile deine Erfahrungen in unserer anonymen Nutzerumfrage. Dein Feedback hilft uns, den Chatbot für alle Studierenden zu verbessern.",
+        emailFeedback: "E-Mail senden",
+        emailDescription: "Hast du zusätzliches Feedback oder Feature-Wünsche? Kontaktiere uns direkt unter:",
+        closeModal: "Schließen",
+        surveyBannerText: "Chat hilfreich? Hilf uns mit einer ",
+        surveyBannerLink: "5-minütigen Umfrage",
+        surveyWelcome: "Nach dem Testen freuen wir uns über dein Feedback in unserer ",
+        surveyWelcomeLink: "anonymen Umfrage",
+        surveyModalTitle: "Hilf uns besser zu werden! 🎯",
+        surveyModalText: "Du nutzt den BAföG Bot schon eine Weile. Würdest du deine Erfahrungen in einer kurzen Umfrage teilen? Es dauert nur 5 Minuten und hilft uns, Studierende besser zu unterstützen.",
+        surveyModalButton: "Zur Umfrage",
+        surveyModalLater: "Vielleicht später"
     }
 }
 
 export type TranslationKey = keyof typeof translations.en
+

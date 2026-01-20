@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { Send, StopCircle, ChevronDown, ChevronUp, Cpu, Sparkles, FileText, BrainCircuit, Loader2, Paperclip, X, Info } from 'lucide-react'
 import { useChatStream, FileAttachment } from '@/hooks/useChatStream'
 import { ChatService } from '@/services/chatService'
@@ -14,6 +14,8 @@ import { Database } from '@/types/supabase'
 import { useLanguage } from '@/contexts/language-context'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { extractPdfText, isPdf } from '@/utils/pdf-extractor'
+import { SurveyBanner } from '@/components/SurveyBanner'
+import { SurveyModal } from '@/components/SurveyModal'
 
 type Message = Database['public']['Tables']['messages']['Row']
 type Chat = Database['public']['Tables']['chats']['Row']
@@ -144,6 +146,11 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
             setMessages(initialMessages)
         }
     }, [initialMessages, setMessages])
+
+    // Count assistant messages for survey triggers
+    const assistantMessageCount = useMemo(() => {
+        return messages.filter(msg => msg.role === 'assistant').length
+    }, [messages])
 
     const [input, setInput] = useState('')
     const [attachedFile, setAttachedFile] = useState<File | null>(null)
@@ -281,6 +288,9 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
 
     return (
         <div className="flex flex-col h-full bg-background relative overflow-hidden">
+            {/* Survey Banner - sticky at top, appears after 3 bot messages */}
+            <SurveyBanner messageCount={assistantMessageCount} threshold={3} />
+
             {/* Messages */}
             <ScrollArea className="flex-1 w-full min-h-0">
                 <div className="flex flex-col gap-6 p-4 pb-32 max-w-3xl mx-auto">
@@ -292,6 +302,17 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                             <h3 className="text-lg font-semibold mb-2">{t('greeting' as any)}</h3>
                             <p className="text-sm text-muted-foreground max-w-md">
                                 {t('greetingSub' as any)}
+                            </p>
+                            <p className="text-xs text-muted-foreground/70 max-w-md mt-3">
+                                {t('surveyWelcome' as any)}
+                                <a
+                                    href="https://umfragenup.uni-potsdam.de/Bafoeg_chatbot/"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary hover:underline"
+                                >
+                                    {t('surveyWelcomeLink' as any)}
+                                </a>
                             </p>
                         </div>
                     )}
@@ -474,6 +495,9 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                     </div>
                 )}
             </div>
+
+            {/* Survey Modal - appears once after 10+ messages */}
+            <SurveyModal messageCount={assistantMessageCount} threshold={10} />
         </div>
     )
 }
