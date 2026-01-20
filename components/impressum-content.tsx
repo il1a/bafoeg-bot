@@ -107,10 +107,10 @@ export function ImpressumContent() {
                         <p className="mt-2">
                             Email:{" "}
                             <a
-                                href="mailto:ilia.sokolovskiy@uni-potsdam.de"
+                                href="mailto:contact@bafoeg.ilia.work"
                                 className="text-primary hover:underline"
                             >
-                                ilia.sokolovskiy@uni-potsdam.de
+                                contact@bafoeg.ilia.work
                             </a>
                         </p>
                     </section>
@@ -266,10 +266,10 @@ export function ImpressumContent() {
                     <p className="mt-2">
                         E-Mail:{" "}
                         <a
-                            href="mailto:ilia.sokolovskiy@uni-potsdam.de"
+                            href="mailto:contact@bafoeg.ilia.work"
                             className="text-primary hover:underline"
                         >
-                            ilia.sokolovskiy@uni-potsdam.de
+                            contact@bafoeg.ilia.work
                         </a>
                     </p>
                 </section>

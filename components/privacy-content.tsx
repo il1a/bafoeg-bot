@@ -14,7 +14,7 @@ export function PrivacyContent() {
                     <h1 className="text-3xl font-bold mb-8">Privacy Policy</h1>
 
                     <p className="text-sm text-muted-foreground mb-8">
-                        Last updated: January 18, 2026
+                        Last updated: January 20, 2026
                     </p>
 
                     <section className="mb-8">
@@ -38,10 +38,10 @@ export function PrivacyContent() {
                             <br />
                             Email:{" "}
                             <a
-                                href="mailto:ilia.sokolovskiy@uni-potsdam.de"
+                                href="mailto:contact@bafoeg.ilia.work"
                                 className="text-primary hover:underline"
                             >
-                                ilia.sokolovskiy@uni-potsdam.de
+                                contact@bafoeg.ilia.work
                             </a>
                         </address>
                     </section>
@@ -179,10 +179,10 @@ export function PrivacyContent() {
                         <p className="mt-4">
                             To exercise your rights, please contact us at:{" "}
                             <a
-                                href="mailto:ilia.sokolovskiy@uni-potsdam.de"
+                                href="mailto:contact@bafoeg.ilia.work"
                                 className="text-primary hover:underline"
                             >
-                                ilia.sokolovskiy@uni-potsdam.de
+                                contact@bafoeg.ilia.work
                             </a>
                         </p>
                     </section>
@@ -234,7 +234,7 @@ export function PrivacyContent() {
                 <h1 className="text-3xl font-bold mb-8">Datenschutzerklärung</h1>
 
                 <p className="text-sm text-muted-foreground mb-8">
-                    Stand: 18. Januar 2026
+                    Stand: 20. Januar 2026
                 </p>
 
                 <section className="mb-8">
@@ -260,10 +260,10 @@ export function PrivacyContent() {
                         <br />
                         E-Mail:{" "}
                         <a
-                            href="mailto:ilia.sokolovskiy@uni-potsdam.de"
+                            href="mailto:contact@bafoeg.ilia.work"
                             className="text-primary hover:underline"
                         >
-                            ilia.sokolovskiy@uni-potsdam.de
+                            contact@bafoeg.ilia.work
                         </a>
                     </address>
                 </section>
@@ -421,10 +421,10 @@ export function PrivacyContent() {
                     <p className="mt-4">
                         Zur Ausübung Ihrer Rechte kontaktieren Sie uns bitte unter:{" "}
                         <a
-                            href="mailto:ilia.sokolovskiy@uni-potsdam.de"
+                            href="mailto:contact@bafoeg.ilia.work"
                             className="text-primary hover:underline"
                         >
-                            ilia.sokolovskiy@uni-potsdam.de
+                            contact@bafoeg.ilia.work
                         </a>
                     </p>
                 </section>
