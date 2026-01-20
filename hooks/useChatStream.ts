@@ -124,6 +124,10 @@ function cleanModelOutput(rawOutput: string): string {
         }
     }
 
+    // Final cleanup: Remove any standalone "Antwort" or "Answer" at the very start
+    // This catches cases like "Antwort\n\n", "Answer:\n", "**Antwort**\n", etc.
+    cleanedOutput = cleanedOutput.replace(/^\s*(?:\*\*)?(?:Antwort|Answer)(?:\*\*)?:?\s*/i, '').trim()
+
     return cleanedOutput
 }
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
-import { Send, StopCircle, Sparkles, Loader2, LogIn, UserPlus, Paperclip, FileText, X, Info } from 'lucide-react'
+import { Send, StopCircle, Sparkles, Loader2, LogIn, UserPlus, Paperclip, FileText, X, Info, ChevronDown, ChevronUp, Cpu, BrainCircuit } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils'
 import MarkdownRenderer from '@/components/markdown/MarkdownRenderer'
 import { useLanguage } from '@/contexts/language-context'
 import { useAccessibility } from '@/contexts/accessibility-context'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import Link from 'next/link'
 import { extractPdfText, isPdf } from '@/utils/pdf-extractor'
 import { SurveyBanner } from '@/components/SurveyBanner'
@@ -24,6 +25,7 @@ interface EphemeralMessage {
     status: 'complete' | 'streaming' | 'error'
     created_at: string
     attachment?: { name: string; mimeType: string }
+    events?: any[]  // Store tool calls and metrics
 }
 
 // File attachment for document uploads
@@ -78,6 +80,51 @@ function ThinkingIndicator() {
     )
 }
 
+// Collapsible tool details component
+function ToolCallDetails({ events }: { events: any[] }) {
+    const { t } = useLanguage()
+    const [isOpen, setIsOpen] = useState(false)
+    const toolCalls = events.filter(evt => evt.type === 'tool_call')
+
+    if (toolCalls.length === 0) return null
+
+    return (
+        <div className="mt-2 w-full">
+            <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+                <CollapsibleTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex items-center gap-2 p-0 h-auto text-xs text-muted-foreground hover:text-foreground hover:bg-transparent"
+                    >
+                        <BrainCircuit className="h-3 w-3" />
+                        <span>
+                            {t('agentLogic' as any)} ({toolCalls.length} {t('toolsUsed' as any)})
+                        </span>
+                        <ChevronDown className={cn("h-3 w-3 transition-transform duration-200", isOpen && "rotate-180")} />
+                    </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                    <div className="mt-2 space-y-3 pl-2 border-l-2 border-muted">
+                        {toolCalls.map((evt, idx) => (
+                            <div key={idx} className="text-xs space-y-1">
+                                <div className="font-semibold text-foreground">
+                                    {evt.data?.tool || 'Tool'}
+                                </div>
+                                {evt.data?.input && (
+                                    <div className="text-muted-foreground break-words bg-muted/30 p-2 rounded font-mono text-[10px]">
+                                        Query: {evt.data.input}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </CollapsibleContent>
+            </Collapsible>
+        </div>
+    )
+}
+
 // Helper to clean model output (same as useChatStream.ts)
 function cleanModelOutput(rawOutput: string): string {
     if (!rawOutput) return ''
@@ -124,6 +171,10 @@ function cleanModelOutput(rawOutput: string): string {
             return cleanedOutput.substring(answerStart)
         }
     }
+
+    // Final cleanup: Remove any standalone "Antwort" or "Answer" at the very start
+    // This catches cases like "Antwort\n\n", "Answer:\n", "**Antwort**\n", etc.
+    cleanedOutput = cleanedOutput.replace(/^\s*(?:\*\*)?(?:Antwort|Answer)(?:\*\*)?:?\s*/i, '').trim()
 
     return cleanedOutput
 }
@@ -224,6 +275,7 @@ export function IncognitoChatWindow() {
         if ((!content.trim() && !files) || isLoading) return
 
         setIsLoading(true)
+        const requestStartTime = Date.now()
 
         // Add user message
         const userMessage: EphemeralMessage = {
@@ -244,7 +296,8 @@ export function IncognitoChatWindow() {
             role: 'assistant',
             content: '',
             status: 'streaming',
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
+            events: []
         }
 
         setMessages(prev => [...prev, assistantMessage])
@@ -275,9 +328,32 @@ export function IncognitoChatWindow() {
                 throw new Error('Empty response from AI')
             }
 
+            // Calculate duration and build events array
+            const durationMs = Date.now() - requestStartTime
+            const durationSec = (durationMs / 1000).toFixed(1)
+
+            const events: any[] = []
+
+            // Parse intermediate steps into tool call events
+            if (data.intermediateSteps && data.intermediateSteps.length > 0) {
+                for (const step of data.intermediateSteps) {
+                    events.push({
+                        type: 'tool_call',
+                        data: {
+                            tool: step.action.tool,
+                            input: step.action.toolInput,
+                            output: step.observation
+                        }
+                    })
+                }
+            }
+
+            // Add metrics event
+            events.push({ type: 'metrics', data: { duration: durationSec } })
+
             setMessages(prev => prev.map(msg =>
                 msg.id === assistantMessageId
-                    ? { ...msg, content: cleanedOutput, status: 'complete' }
+                    ? { ...msg, content: cleanedOutput, status: 'complete', events }
                     : msg
             ))
         } catch (error: any) {
@@ -416,9 +492,32 @@ export function IncognitoChatWindow() {
 
                                 {/* Assistant completed */}
                                 {msg.role === 'assistant' && msg.status !== 'streaming' && (
-                                    <div className="rounded-2xl px-4 py-3 text-sm shadow-sm bg-card border text-card-foreground rounded-tl-sm w-full">
-                                        <MarkdownRenderer content={msg.content} />
-                                    </div>
+                                    <>
+                                        <div className="rounded-2xl px-4 py-3 text-sm shadow-sm bg-card border text-card-foreground rounded-tl-sm w-full">
+                                            <MarkdownRenderer content={msg.content} />
+                                        </div>
+
+                                        {/* Tool call details (collapsible) */}
+                                        {msg.events && (msg.events as any[]).length > 0 && (
+                                            <ToolCallDetails events={msg.events as any[]} />
+                                        )}
+
+                                        {/* Metrics */}
+                                        {msg.events && (
+                                            <div className="flex flex-wrap gap-2 mt-1">
+                                                {(msg.events as any[]).map((evt, idx) => {
+                                                    if (evt.type === 'metrics' && evt.data?.duration) {
+                                                        return (
+                                                            <span key={idx} className="text-[10px] text-muted-foreground flex items-center gap-1 opacity-70">
+                                                                {t('generatedIn' as any)} {evt.data.duration}s
+                                                            </span>
+                                                        )
+                                                    }
+                                                    return null
+                                                })}
+                                            </div>
+                                        )}
+                                    </>
                                 )}
 
                                 {/* User message */}
