@@ -176,6 +176,9 @@ function cleanModelOutput(rawOutput: string): string {
     // This catches cases like "Antwort\n\n", "Answer:\n", "**Antwort**\n", etc.
     cleanedOutput = cleanedOutput.replace(/^\s*(?:\*\*)?(?:Antwort|Answer)(?:\*\*)?:?\s*/i, '').trim()
 
+    // Remove any stray markdown asterisks left at the beginning after cleanup
+    cleanedOutput = cleanedOutput.replace(/^[\s*]+/, '').trim()
+
     return cleanedOutput
 }
 
