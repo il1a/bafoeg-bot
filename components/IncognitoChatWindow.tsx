@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { Send, StopCircle, Sparkles, Loader2, LogIn, UserPlus, Paperclip, FileText, X, Info, ChevronDown, ChevronUp, Cpu, BrainCircuit } from 'lucide-react'
+import { OnboardingModal } from '@/components/onboarding-modal'
 import { v4 as uuidv4 } from 'uuid'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -396,7 +397,9 @@ export function IncognitoChatWindow() {
     }, [messages, isLoading])
 
     return (
-        <div className="flex flex-col h-full bg-background relative overflow-hidden">
+        <div className="flex flex-col h-full bg-background relative">
+            <OnboardingModal />
+
             {/* Incognito Banner */}
             <div className="bg-muted/50 border-b px-4 py-3 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">

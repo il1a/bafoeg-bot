@@ -13,6 +13,7 @@ import MarkdownRenderer from '@/components/markdown/MarkdownRenderer'
 import { Database } from '@/types/supabase'
 import { useLanguage } from '@/contexts/language-context'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { OnboardingModal } from '@/components/onboarding-modal'
 import { extractPdfText, isPdf } from '@/utils/pdf-extractor'
 import { SurveyBanner } from '@/components/SurveyBanner'
 import { SurveyModal } from '@/components/SurveyModal'
@@ -291,6 +292,7 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
 
     return (
         <div className="flex flex-col h-full bg-background relative overflow-hidden">
+            <OnboardingModal />
             {/* Survey Banner - sticky at top, appears after 3 bot messages */}
             <SurveyBanner messageCount={assistantMessageCount} threshold={3} />
 
