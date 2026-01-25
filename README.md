@@ -25,17 +25,33 @@ Despite generous provisions under the German **BAföG** scheme, many students fa
 **BAföG Bot** is a multilingual intelligent chatbot that uses Large Language Models together with **Retrieval-Augmented Generation (RAG)** to provide transparent and precise BAföG counseling. Developed by a Master's student team at the **University of Potsdam**, this project investigates how generative AI can simplify communication between students and public institutions.
 
 > 📄 See [`docs/SYSTEM_PROMPT.md`](docs/SYSTEM_PROMPT.md) for our transparent AI system prompt.
+> 
+> 🔧 See [`n8n/`](n8n/) for the complete RAG workflow (importable JSON).
 
 ---
 
 ## Features
 
+### Core Capabilities
 - 🌍 **Multilingual Support** — Ask questions in any language; the bot responds in kind
 - 🔍 **RAG-Powered Accuracy** — Answers grounded in authoritative BAföG documentation
-- 📚 **Source Citations** — Every answer includes links to official sources
-- 🧮 **Built-in Calculator** — Automatic calculations for thresholds, repayments, etc.
-- 🌙 **Dark Mode** — Full light/dark theme support
-- 🔐 **Secure Auth** — Supabase authentication with magic links & password login
+- 📚 **Source Citations** — Every answer includes links to official law paragraphs (§) or bafög.de pages
+- 🧮 **Built-in Calculator** — Transparent calculations for income thresholds, repayments, etc. (inputs visible for verification)
+- 📄 **Document Upload** — Upload PDFs or images (forms, decision letters, screenshots) for assistance
+- 🔐 **Privacy-First** — PII redacted server-side before processing; Zero Data Retention AI provider
+
+### User Experience
+- 🎨 **Theme Options** — Light, dark, or system theme
+- 📝 **Adjustable Font Size** — Accessibility settings for better readability
+- 🗣️ **Simple Language Mode** — Simplified answers for easier comprehension
+- 👤 **Anonymous Mode** — Use without registration ("Try without account")
+- ✨ **Magic Link Auth** — One-click email login to save and manage chats
+- 📊 **Data Transparency** — Shows knowledge base version (29th BAföG Reform, July 2024)
+
+### Tool Transparency
+The bot shows which tools it uses and their inputs:
+- **Qdrant Search** — Displays the exact search query sent to the knowledge base
+- **Calculator** — Shows the calculation input so users can verify results
 
 ---
 
@@ -45,6 +61,7 @@ Despite generous provisions under the German **BAföG** scheme, many students fa
 flowchart TB
     subgraph Client["Client (Vercel)"]
         UI[Next.js App]
+        PII[PII Redactor]
     end
 
     subgraph Supabase["Supabase (Cloud)"]
@@ -62,7 +79,8 @@ flowchart TB
         LLM[GPT OSS 120B]
     end
 
-    UI -->|Webhook| N8N
+    UI --> PII
+    PII -->|Webhook| N8N
     UI -->|Auth & Data| Supabase
     N8N -->|Embedding Query| Ollama
     N8N -->|Vector Search| Qdrant
@@ -82,6 +100,16 @@ flowchart TB
 | **Vector Database** | Qdrant | Self-hosted (Contabo VPS, Docker) |
 | **Embedding Model** | BGE M3 via Ollama | Self-hosted (Contabo VPS, Docker) |
 | **LLM** | GPT OSS 120B | OpenRouter (Zero Data Retention) |
+
+---
+
+## Data Sources & Currency
+
+| Source | Version | Last Verified |
+|--------|---------|---------------|
+| **BAföG Law** | 29. BAföGÄndG (in effect since July 2024) | January 2026 |
+| **Official BAföG Info Webpages** | bafög.de content | January 2026 |
+| **Income Limits** | Minijob 2026: €603/month | January 2026 |
 
 ---
 
@@ -138,21 +166,31 @@ Set `MOCK_N8N=true` in your `.env.local`. This iterates on the frontend using si
 
 #### 2. Full Stack Self-Hosting
 If you wish to contribute to the RAG logic or run your own instance:
-- **n8n**: Import the workflow template from the [`n8n/`](n8n/) directory.
+- **n8n**: Import the workflow from [`n8n/`](n8n/) directory.
 - **Vector DB**: Set up a Qdrant collection and populate it with BAföG documents.
-- **LLM**: Configure your own API keys in the imported n8n nodes.
+- **LLM**: Configure your own OpenRouter API key in the n8n nodes.
 
 ---
 
 ## RAG Pipeline & n8n Workflow
 
 For full transparency, the core RAG logic is available in the [`n8n/`](n8n/) directory. This workflow handles:
-- **Multilingual Query Processing**: Detecting and responding in the user's language.
-- **Vector Search**: Querying Qdrant for relevant BAföG legislation snippets.
-- **Contextual Reasoning**: Passing retrieved context to the LLM via OpenRouter.
-- **Intermediate Steps**: Streaming the agent's thought process back to the UI.
+- **Query Translation**: Converts user questions to German for vector search
+- **Vector Search**: Queries Qdrant for relevant BAföG legislation and FAQ snippets
+- **Calculator Tool**: Performs arithmetic with visible inputs for verification
+- **Contextual Reasoning**: Passes retrieved context to GPT-OSS-120B via OpenRouter
+- **Source Attribution**: Includes clickable links to law paragraphs and official pages
 
 We encourage developers to fork the workflow and adapt it for other public service domains!
+
+---
+
+## Transparency Documents
+
+| Document | Description |
+|----------|-------------|
+| [`docs/SYSTEM_PROMPT.md`](docs/SYSTEM_PROMPT.md) | Complete LLM system prompt (13 rules, examples, edge cases) |
+| [`n8n/BAföG Bot - Version for User Testing v4.json`](n8n/) | Importable n8n workflow |
 
 ---
 
