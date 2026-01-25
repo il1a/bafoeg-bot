@@ -35,10 +35,10 @@ export function DataSourceBadge({ variant = 'full', className }: DataSourceBadge
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
                             className={cn(
-                                "flex items-center gap-2 font-normal text-muted-foreground hover:text-foreground transition-colors",
+                                "flex items-center gap-2 font-normal text-muted-foreground hover:text-foreground transition-colors h-auto p-0",
                                 className
                             )}
                         >

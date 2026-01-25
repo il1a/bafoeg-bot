@@ -15,6 +15,7 @@ import { ThemeToggle } from '@/components/theme-toggle'
 import { LanguageToggle } from './language-toggle'
 import { AccessibilitySettings } from '@/components/accessibility-settings'
 import { useLanguage } from '@/contexts/language-context'
+import { DataSourceBadge } from '@/components/DataSourceBadge'
 
 type Chat = Database['public']['Tables']['chats']['Row']
 
@@ -254,10 +255,18 @@ export function Sidebar({ initialChats = [], user }: SidebarProps) {
                     <div className="flex flex-col overflow-hidden flex-1">
                         <span className="text-sm font-medium truncate">{user?.email}</span>
                     </div>
+                </div>
+
+                <div className="mb-4">
+                    <DataSourceBadge variant="compact" className="w-full justify-start pl-0 hover:bg-transparent" />
+                </div>
+
+                <div className="flex items-center gap-2 mb-4">
                     <AccessibilitySettings />
                     <LanguageToggle />
                     <ThemeToggle />
                 </div>
+
                 <Button
                     variant="ghost"
                     size="sm"

@@ -477,7 +477,6 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                     </Button>
                 </div>
                 <div className="flex items-center justify-center gap-2 mt-2">
-                    <DataSourceBadge variant="compact" />
                     <p className={cn(
                         "text-muted-foreground",
                         fontSize === 'normal' ? 'text-[10px]' : fontSize === 'large' ? 'text-xs' : 'text-sm'

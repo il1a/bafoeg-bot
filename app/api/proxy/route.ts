@@ -1,4 +1,8 @@
 import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+
+
 import { redactPII, logRedactionAudit } from '@/utils/pii-redactor'
 
 export const dynamic = 'force-dynamic'
@@ -20,6 +24,38 @@ export async function POST(req: Request) {
         }
 
         console.log('[Proxy] Forwarding request to n8n:', sanitizedBody)
+
+        // Initialize Supabase Server Client for Auth Check
+        const cookieStore = await cookies()
+        const supabase = createServerClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            {
+                cookies: {
+                    getAll() {
+                        return cookieStore.getAll()
+                    },
+                    setAll(cookiesToSet: { name: string, value: string, options: CookieOptions }[]) {
+                        try {
+                            cookiesToSet.forEach(({ name, value, options }) =>
+                                cookieStore.set(name, value, options)
+                            )
+                        } catch {
+                            // The `setAll` method was called from a Server Component.
+                            // This can be ignored if you have middleware refreshing
+                            // user sessions.
+                        }
+                    },
+                },
+            }
+        )
+
+        // Verify Authentication
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+        if (authError || !user) {
+            console.error('[Proxy] Unauthorized access attempt')
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
 
         // Validate environment variables
         const webhookUrl = process.env.N8N_WEBHOOK_URL
@@ -50,13 +86,19 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Webhook authentication missing' }, { status: 500 })
         }
 
+        // Pass user ID context to n8n if needed
+        const payload = {
+            ...sanitizedBody,
+            userId: user.id
+        }
+
         const response = await fetch(webhookUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'bafoeg-webhook-key': webhookSecret,
             },
-            body: JSON.stringify(sanitizedBody),
+            body: JSON.stringify(payload),
         })
 
         if (!response.ok) {
