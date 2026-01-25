@@ -1,11 +1,25 @@
 import { NextResponse } from 'next/server'
+import { redactPII, logRedactionAudit } from '@/utils/pii-redactor'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
     try {
         const body = await req.json()
-        console.log('[Proxy] Forwarding request to n8n:', body)
+
+        // DSGVO Compliance: Redact PII from user message before forwarding
+        let sanitizedBody = { ...body }
+        if (body.message && typeof body.message === 'string') {
+            const redactionResult = redactPII(body.message)
+            sanitizedBody.message = redactionResult.redactedText
+
+            // Audit log (without actual PII values)
+            if (redactionResult.hasRedactions) {
+                logRedactionAudit(body.sessionId || 'unknown', redactionResult)
+            }
+        }
+
+        console.log('[Proxy] Forwarding request to n8n:', sanitizedBody)
 
         // Validate environment variables
         const webhookUrl = process.env.N8N_WEBHOOK_URL
@@ -42,7 +56,7 @@ export async function POST(req: Request) {
                 'Content-Type': 'application/json',
                 'bafoeg-webhook-key': webhookSecret,
             },
-            body: JSON.stringify(body),
+            body: JSON.stringify(sanitizedBody),
         })
 
         if (!response.ok) {

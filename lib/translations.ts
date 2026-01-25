@@ -102,7 +102,7 @@ export const translations = {
         // Data Source Transparency
         dataStand: "Data Status",
         dataSourceBafoeg: "29th BAföG Reform (July 2024)",
-        dataSourceMinijob: "Minijob Limit 2025: €556"
+        dataSourceMinijob: "Minijob Limit 2026: €603"
     },
     de: {
         // Sidebar
@@ -205,7 +205,7 @@ export const translations = {
         // Data Source Transparency
         dataStand: "Datenstand",
         dataSourceBafoeg: "29. BAföG-Reform (Juli 2024)",
-        dataSourceMinijob: "Minijob-Grenze 2025: 556 €"
+        dataSourceMinijob: "Minijob-Grenze 2026: 603 €"
     }
 }
 

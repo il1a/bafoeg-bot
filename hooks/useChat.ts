@@ -28,7 +28,7 @@ export type ChatState = {
     isLoading: boolean
 }
 
-interface UseChatStreamProps {
+interface UseChatProps {
     sessionId: string
     chatId: string
     onMessageComplete?: (message: Message) => void
@@ -47,94 +47,35 @@ const MAX_RETRIES = 3
 const RETRY_DELAY_MS = 500
 
 // Helper to clean model output
+// Only removes functional "assistantfinal" markers (system tokens from n8n)
+// Preserves all visible markdown formatting including Antwort/Answer headers
 function cleanModelOutput(rawOutput: string): string {
     if (!rawOutput) return ''
     let cleanedOutput = rawOutput
 
-    // Priority 1: Specific "assistantfinal" markers (Logic: Take the LAST occurrence)
-    // This handles cases where the model echoes instructions containing these markers.
-    // The real answer's marker will always be after the instructions.
+    // Only remove functional "assistantfinal" markers (system tokens)
+    // These are internal markers from n8n, not visible to users
     const functionalMarkers = [
-        /answer\.assistantfinal\s*(?:\*\*Antwort\*\*)?/i,
-        /answer\.assistantfinal\s*(?:\*\*Answer\*\*)?/i,
-        /assistantfinal\s*(?:\*\*Antwort\*\*)?/i,
-        /assistantfinal\s*(?:\*\*Answer\*\*)?/i,
+        /answer\.assistantfinal\s*/gi,
+        /assistantfinal\s*/gi,
     ]
 
     for (const marker of functionalMarkers) {
-        // Find all matches to select the last one
-        const matches = [...cleanedOutput.matchAll(new RegExp(marker, 'gi'))]
+        // Find all matches to select the last one (in case instructions echo these)
+        const matches = [...cleanedOutput.matchAll(marker)]
         if (matches.length > 0) {
             const lastMatch = matches[matches.length - 1]
             if (lastMatch.index !== undefined) {
-                return cleanedOutput.substring(lastMatch.index + lastMatch[0].length).trim()
+                cleanedOutput = cleanedOutput.substring(lastMatch.index + lastMatch[0].length).trim()
+                break
             }
         }
     }
 
-    // Priority 2: Standard Markdown markers (Logic: check common formats)
-    // We check these if no functional marker is found.
-    const standardMarkers = [
-        /\*\*Antwort\*\*[:]?/i,
-        /\*\*Answer\*\*[:]?/i,
-        /^\s*Answer:/im,
-        /^\s*Antwort:/im
-    ]
-
-    for (const marker of standardMarkers) {
-        const match = cleanedOutput.match(marker)
-        if (match && match.index !== undefined) {
-            // For standard markers, we take the first match that looks "clean".
-            // However, to avoid matching "Answer section:" in instructions:
-            // 1. If it's `^Answer:`, it must be start of line.
-            // 2. If it is `**Answer**`, it's usually safe, unless instructions have it.
-
-            // If we are here, we didn't find assistantfinal.
-            // Verify it's not "Answer section:"
-            const potentialStart = cleanedOutput.substring(match.index)
-            if (potentialStart.match(/^\s*Answer section:/i)) {
-                continue // Skip this match, it's likely instructions
-            }
-
-            // Also skip if it seems to be part of a sentence like "The Answer is..." unless bolded
-            if (!marker.source.includes('\\*\\*') && !marker.source.includes('^')) {
-                // If soft match, be careful (we removed soft matches from the list above)
-            }
-
-            return potentialStart.replace(marker, '').trim() // Remove the marker itself for clean start? 
-            // Actually, keep the marker? 
-            // - `assistantfinal` -> Remove.
-            // - `**Answer**` -> Keep? Or remove?
-            // The previous code kept it (substring includes start).
-            // But `assistantfinal` removal was explicit.
-
-            // Let's remove the marker to be clean, or keep it if it's a visible header.
-            // Standard markers are usually visible headers. Let's keep them IF they are formatted nicities.
-            // But `assistantfinal` is a system token, so we removed it.
-            // `**Antwort**` is a header. Keep it.
-            return potentialStart
-        }
-    }
-
-    // Fallback: If "analysis" is at start, try detailed cleanup
-    if (cleanedOutput.toLowerCase().startsWith('analysis')) {
-        const answerStart = cleanedOutput.search(/\*\*Answer\*\*|\*\*Antwort\*\*|^Answer:|^Antwort:/im)
-        if (answerStart > 0) {
-            return cleanedOutput.substring(answerStart)
-        }
-    }
-
-    // Final cleanup: Remove any standalone "Antwort" or "Answer" at the very start
-    // This catches cases like "Antwort\n\n", "Answer:\n", "**Antwort**\n", etc.
-    cleanedOutput = cleanedOutput.replace(/^\s*(?:\*\*)?(?:Antwort|Answer)(?:\*\*)?:?\s*/i, '').trim()
-
-    // Remove any stray markdown asterisks left at the beginning after cleanup
-    cleanedOutput = cleanedOutput.replace(/^[\s*]+/, '').trim()
-
-    return cleanedOutput
+    return cleanedOutput.trim()
 }
 
-export function useChatStream({ sessionId, chatId, onMessageComplete }: UseChatStreamProps) {
+export function useChat({ sessionId, chatId, onMessageComplete }: UseChatProps) {
     const [messages, setMessages] = useState<Message[]>([])
     const [isLoading, setIsLoading] = useState(false)
     const { isEasyLanguage } = useAccessibility()

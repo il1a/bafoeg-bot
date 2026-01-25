@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { Send, StopCircle, ChevronDown, ChevronUp, Cpu, Sparkles, FileText, BrainCircuit, Loader2, Paperclip, X, Info } from 'lucide-react'
-import { useChatStream, FileAttachment } from '@/hooks/useChatStream'
+import { useChat, FileAttachment } from '@/hooks/useChat'
 import { ChatService } from '@/services/chatService'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -17,6 +17,7 @@ import { extractPdfText, isPdf } from '@/utils/pdf-extractor'
 import { SurveyBanner } from '@/components/SurveyBanner'
 import { SurveyModal } from '@/components/SurveyModal'
 import { DataSourceBadge } from '@/components/DataSourceBadge'
+import { useAccessibility } from '@/contexts/accessibility-context'
 
 type Message = Database['public']['Tables']['messages']['Row']
 type Chat = Database['public']['Tables']['chats']['Row']
@@ -113,6 +114,7 @@ function ToolCallDetails({ events }: { events: any[] }) {
 
 export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps) {
     const { t } = useLanguage()
+    const { fontSize } = useAccessibility()
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -133,7 +135,7 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
         }
     }
 
-    const { messages, sendMessage, isLoading, setMessages } = useChatStream({
+    const { messages, sendMessage, isLoading, setMessages } = useChat({
         sessionId: chat.session_id,
         chatId: chat.id,
         onMessageComplete: handleMessageComplete
@@ -297,14 +299,14 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                 <div className="flex flex-col gap-6 p-4 pb-32 max-w-3xl mx-auto">
                     {messages.length === 0 && !isLoading && (
                         <div className="flex flex-col items-center justify-center p-8 text-center mt-20">
-                            <div className="h-16 w-16 mb-4">
+                            <div className="h-16 w-16 mb-6">
                                 <img src="/bot-avatar.svg" alt="BAföG Bot" className="w-full h-full" />
                             </div>
-                            <h3 className="text-lg font-semibold mb-2">{t('greeting' as any)}</h3>
-                            <p className="text-sm text-muted-foreground max-w-md">
+                            <h3 className="text-xl font-semibold mb-3">{t('greeting' as any)}</h3>
+                            <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
                                 {t('greetingSub' as any)}
                             </p>
-                            <p className="text-xs text-muted-foreground/70 max-w-md mt-3">
+                            <p className="text-xs text-muted-foreground/70 max-w-md mt-5 leading-relaxed">
                                 {t('surveyWelcome' as any)}
                                 <a
                                     href="https://umfragenup.uni-potsdam.de/Bafoeg_chatbot/"
@@ -316,7 +318,7 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                                 </a>
                             </p>
                             {/* Data source transparency badge */}
-                            <DataSourceBadge variant="full" className="mt-4 max-w-md" />
+                            <DataSourceBadge variant="full" className="mt-6 max-w-md" />
                         </div>
                     )}
 
@@ -476,7 +478,10 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                 </div>
                 <div className="flex items-center justify-center gap-2 mt-2">
                     <DataSourceBadge variant="compact" />
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className={cn(
+                        "text-muted-foreground",
+                        fontSize === 'normal' ? 'text-[10px]' : fontSize === 'large' ? 'text-xs' : 'text-sm'
+                    )}>
                         {t('aiDisclaimer' as any)}
                     </p>
                     <button

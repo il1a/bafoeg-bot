@@ -47,7 +47,7 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="flex flex-col min-h-screen bg-background">
+        <div className="flex flex-col min-h-screen bg-background pb-20">
             <div className="flex-1 flex items-center justify-center px-4 relative">
                 <div className="absolute top-4 right-4 flex items-center gap-2">
                     <AccessibilitySettings showEasyLanguage={false} />

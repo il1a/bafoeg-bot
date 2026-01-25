@@ -126,66 +126,38 @@ function ToolCallDetails({ events }: { events: any[] }) {
     )
 }
 
-// Helper to clean model output (same as useChatStream.ts)
+// Helper to clean model output (same as useChat.ts)
+// Only removes functional "assistantfinal" markers (system tokens from n8n)
+// Preserves all visible markdown formatting including Antwort/Answer headers
 function cleanModelOutput(rawOutput: string): string {
     if (!rawOutput) return ''
     let cleanedOutput = rawOutput
 
+    // Only remove functional "assistantfinal" markers (system tokens)
+    // These are internal markers from n8n, not visible to users
     const functionalMarkers = [
-        /answer\.assistantfinal\s*(?:\*\*Antwort\*\*)?/i,
-        /answer\.assistantfinal\s*(?:\*\*Answer\*\*)?/i,
-        /assistantfinal\s*(?:\*\*Antwort\*\*)?/i,
-        /assistantfinal\s*(?:\*\*Answer\*\*)?/i,
+        /answer\.assistantfinal\s*/gi,
+        /assistantfinal\s*/gi,
     ]
 
     for (const marker of functionalMarkers) {
-        const matches = [...cleanedOutput.matchAll(new RegExp(marker, 'gi'))]
+        // Find all matches to select the last one (in case instructions echo these)
+        const matches = [...cleanedOutput.matchAll(marker)]
         if (matches.length > 0) {
             const lastMatch = matches[matches.length - 1]
             if (lastMatch.index !== undefined) {
-                return cleanedOutput.substring(lastMatch.index + lastMatch[0].length).trim()
+                cleanedOutput = cleanedOutput.substring(lastMatch.index + lastMatch[0].length).trim()
+                break
             }
         }
     }
 
-    const standardMarkers = [
-        /\*\*Antwort\*\*[:]?/i,
-        /\*\*Answer\*\*[:]?/i,
-        /^\s*Answer:/im,
-        /^\s*Antwort:/im
-    ]
-
-    for (const marker of standardMarkers) {
-        const match = cleanedOutput.match(marker)
-        if (match && match.index !== undefined) {
-            const potentialStart = cleanedOutput.substring(match.index)
-            if (potentialStart.match(/^\s*Answer section:/i)) {
-                continue
-            }
-            return potentialStart
-        }
-    }
-
-    if (cleanedOutput.toLowerCase().startsWith('analysis')) {
-        const answerStart = cleanedOutput.search(/\*\*Answer\*\*|\*\*Antwort\*\*|^Answer:|^Antwort:/im)
-        if (answerStart > 0) {
-            return cleanedOutput.substring(answerStart)
-        }
-    }
-
-    // Final cleanup: Remove any standalone "Antwort" or "Answer" at the very start
-    // This catches cases like "Antwort\n\n", "Answer:\n", "**Antwort**\n", etc.
-    cleanedOutput = cleanedOutput.replace(/^\s*(?:\*\*)?(?:Antwort|Answer)(?:\*\*)?:?\s*/i, '').trim()
-
-    // Remove any stray markdown asterisks left at the beginning after cleanup
-    cleanedOutput = cleanedOutput.replace(/^[\s*]+/, '').trim()
-
-    return cleanedOutput
+    return cleanedOutput.trim()
 }
 
 export function IncognitoChatWindow() {
     const { t } = useLanguage()
-    const { isEasyLanguage } = useAccessibility()
+    const { isEasyLanguage, fontSize } = useAccessibility()
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -450,14 +422,14 @@ export function IncognitoChatWindow() {
                 <div className="flex flex-col gap-6 p-4 pb-32 max-w-3xl mx-auto">
                     {messages.length === 0 && !isLoading && (
                         <div className="flex flex-col items-center justify-center p-8 text-center mt-20">
-                            <div className="h-16 w-16 mb-4">
+                            <div className="h-16 w-16 mb-6">
                                 <img src="/bot-avatar.svg" alt="BAföG Bot" className="w-full h-full" />
                             </div>
-                            <h3 className="text-lg font-semibold mb-2">{t('greeting' as any)}</h3>
-                            <p className="text-sm text-muted-foreground max-w-md">
+                            <h3 className="text-xl font-semibold mb-3">{t('greeting' as any)}</h3>
+                            <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
                                 {t('greetingSub' as any)}
                             </p>
-                            <p className="text-xs text-muted-foreground/70 max-w-md mt-3">
+                            <p className="text-xs text-muted-foreground/70 max-w-md mt-5 leading-relaxed">
                                 {t('surveyWelcome' as any)}
                                 <a
                                     href="https://umfragenup.uni-potsdam.de/Bafoeg_chatbot/"
@@ -469,7 +441,7 @@ export function IncognitoChatWindow() {
                                 </a>
                             </p>
                             {/* Data source transparency badge */}
-                            <DataSourceBadge variant="full" className="mt-4 max-w-md" />
+                            <DataSourceBadge variant="full" className="mt-6 max-w-md" />
                         </div>
                     )}
 
@@ -621,7 +593,10 @@ export function IncognitoChatWindow() {
                     </Button>
                 </div>
                 <div className="flex items-center justify-center gap-2 mt-2">
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className={cn(
+                        "text-muted-foreground",
+                        fontSize === 'normal' ? 'text-[10px]' : fontSize === 'large' ? 'text-xs' : 'text-sm'
+                    )}>
                         {t('aiDisclaimer' as any)}
                     </p>
                     <button
