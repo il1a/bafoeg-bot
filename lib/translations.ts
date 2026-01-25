@@ -20,7 +20,7 @@ export const translations = {
         signinSubtitle: 'Sign in to get instant answers to your BAföG questions.',
         signupSubtitle: 'Create a free account to start your BAföG consultation.',
         forgotSubtitle: "Enter your email and we'll send you a reset link.",
-        magicLinkSubtitle: "We'll send you a link to sign in instantly.",
+        magicLinkSubtitle: "Sign up with a magic link to save your chats, or jump right in anonymously – no account required.",
 
         signinBtn: 'Sign In',
         signupBtn: 'Sign Up',
@@ -123,7 +123,7 @@ export const translations = {
         signinSubtitle: 'Melde dich an für sofortige Antworten auf deine BAföG-Fragen.',
         signupSubtitle: 'Erstelle ein kostenloses Konto für deine BAföG-Beratung.',
         forgotSubtitle: 'Gib deine E-Mail ein und wir senden dir einen Link zum Zurücksetzen.',
-        magicLinkSubtitle: 'Wir senden dir einen Link zur sofortigen Anmeldung.',
+        magicLinkSubtitle: 'Melde dich mit Magic Link an, um deine Chats zu speichern, oder starte anonym – kein Konto erforderlich.',
 
         signinBtn: 'Anmelden',
         signupBtn: 'Registrieren',
