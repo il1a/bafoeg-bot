@@ -16,6 +16,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { extractPdfText, isPdf } from '@/utils/pdf-extractor'
 import { SurveyBanner } from '@/components/SurveyBanner'
 import { SurveyModal } from '@/components/SurveyModal'
+import { DataSourceBadge } from '@/components/DataSourceBadge'
 
 type Message = Database['public']['Tables']['messages']['Row']
 type Chat = Database['public']['Tables']['chats']['Row']
@@ -314,6 +315,8 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                                     {t('surveyWelcomeLink' as any)}
                                 </a>
                             </p>
+                            {/* Data source transparency badge */}
+                            <DataSourceBadge variant="full" className="mt-4 max-w-md" />
                         </div>
                     )}
 
@@ -472,6 +475,7 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                     </Button>
                 </div>
                 <div className="flex items-center justify-center gap-2 mt-2">
+                    <DataSourceBadge variant="compact" />
                     <p className="text-[10px] text-muted-foreground">
                         {t('aiDisclaimer' as any)}
                     </p>

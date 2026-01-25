@@ -68,6 +68,7 @@ export const translations = {
         simpleLanguageDesc: "Simplifies answers for better readability.",
 
         // Incognito Mode
+        or: "Or",
         tryWithoutAccount: "Try without account",
         incognitoBanner: "You're in incognito mode. Your chat will disappear when you close this tab.",
         signUpToSave: "Sign up to save",
@@ -96,7 +97,12 @@ export const translations = {
         surveyModalTitle: "Help Us Improve! 🎯",
         surveyModalText: "You've been using BAföG Bot for a bit now. Would you mind sharing your experience in a quick survey? It only takes 5 minutes and helps us serve students better.",
         surveyModalButton: "Take the Survey",
-        surveyModalLater: "Maybe Later"
+        surveyModalLater: "Maybe Later",
+
+        // Data Source Transparency
+        dataStand: "Data Status",
+        dataSourceBafoeg: "29th BAföG Reform (July 2024)",
+        dataSourceMinijob: "Minijob Limit 2025: €556"
     },
     de: {
         // Sidebar
@@ -165,6 +171,7 @@ export const translations = {
         simpleLanguageDesc: "Vereinfacht Antworten für bessere Lesbarkeit.",
 
         // Incognito Mode
+        or: "Oder",
         tryWithoutAccount: "Ohne Konto testen",
         incognitoBanner: "Du bist im Inkognito-Modus. Dein Chat verschwindet, wenn du diesen Tab schließt.",
         signUpToSave: "Registrieren zum Speichern",
@@ -193,7 +200,12 @@ export const translations = {
         surveyModalTitle: "Hilf uns besser zu werden! 🎯",
         surveyModalText: "Du nutzt den BAföG Bot schon eine Weile. Würdest du deine Erfahrungen in einer kurzen Umfrage teilen? Es dauert nur 5 Minuten und hilft uns, Studierende besser zu unterstützen.",
         surveyModalButton: "Zur Umfrage",
-        surveyModalLater: "Vielleicht später"
+        surveyModalLater: "Vielleicht später",
+
+        // Data Source Transparency
+        dataStand: "Datenstand",
+        dataSourceBafoeg: "29. BAföG-Reform (Juli 2024)",
+        dataSourceMinijob: "Minijob-Grenze 2025: 556 €"
     }
 }
 

@@ -16,6 +16,7 @@ import Link from 'next/link'
 import { extractPdfText, isPdf } from '@/utils/pdf-extractor'
 import { SurveyBanner } from '@/components/SurveyBanner'
 import { SurveyModal } from '@/components/SurveyModal'
+import { DataSourceBadge } from '@/components/DataSourceBadge'
 
 // Ephemeral message type (no DB schema dependency)
 interface EphemeralMessage {
@@ -430,12 +431,15 @@ export function IncognitoChatWindow() {
                     <span className="text-lg">👻</span>
                     <span>{t('incognitoBanner' as any)}</span>
                 </div>
-                <Link href="/login">
-                    <Button size="sm" variant="default" className="gap-2">
-                        <UserPlus className="h-4 w-4" />
-                        {t('signUpToSave' as any)}
-                    </Button>
-                </Link>
+                <div className="flex items-center gap-3">
+                    <DataSourceBadge variant="compact" />
+                    <Link href="/login">
+                        <Button size="sm" variant="default" className="gap-2">
+                            <UserPlus className="h-4 w-4" />
+                            {t('signUpToSave' as any)}
+                        </Button>
+                    </Link>
+                </div>
             </div>
 
             {/* Survey Banner - sticky at top, appears after 3 bot messages */}
@@ -464,6 +468,8 @@ export function IncognitoChatWindow() {
                                     {t('surveyWelcomeLink' as any)}
                                 </a>
                             </p>
+                            {/* Data source transparency badge */}
+                            <DataSourceBadge variant="full" className="mt-4 max-w-md" />
                         </div>
                     )}
 
