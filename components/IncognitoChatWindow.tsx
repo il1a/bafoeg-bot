@@ -447,8 +447,8 @@ export function IncognitoChatWindow() {
                 </div>
                 <div className="flex items-center gap-3">
                     <DataSourceBadge variant="compact" />
-                    <Link href="/login">
-                        <Button size="sm" variant="default" className="gap-2">
+                    <Link href="/login" className="shrink-0">
+                        <Button size="sm" variant="default" className="gap-2 shrink-0">
                             <UserPlus className="h-4 w-4" />
                             {t('signUpToSave' as any)}
                         </Button>

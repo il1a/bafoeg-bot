@@ -194,7 +194,7 @@ export const translations = {
         or: "Oder",
         tryWithoutAccount: "Ohne Konto testen",
         incognitoBanner: "Dein Chat verschwindet, wenn du diesen Tab schließt.",
-        signUpToSave: "Registrieren zum Speichern",
+        signUpToSave: "Chat speichern",
 
         // Upload Disclaimer
         uploadInfo: "Datei-Upload Info",

@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 interface DataSourceBadgeProps {
     variant?: 'full' | 'compact'
     className?: string
+    forceLabelVisible?: boolean
 }
 
 /**
@@ -21,7 +22,7 @@ interface DataSourceBadgeProps {
  * - "full" variant: Shows full text (for welcome screen)
  * - "compact" variant: Shows icon with tooltip (for header)
  */
-export function DataSourceBadge({ variant = 'full', className }: DataSourceBadgeProps) {
+export function DataSourceBadge({ variant = 'full', className, forceLabelVisible = false }: DataSourceBadgeProps) {
     const { t } = useLanguage()
 
     const bafoegReform = t('dataSourceBafoeg' as any) || '29. BAföG-Reform (Juli 2024)'
@@ -36,12 +37,15 @@ export function DataSourceBadge({ variant = 'full', className }: DataSourceBadge
                         variant="ghost"
                         size="sm"
                         className={cn(
-                            "flex items-center gap-2 font-normal text-muted-foreground hover:text-foreground transition-colors h-auto p-0 focus-visible:ring-0 focus-visible:ring-offset-0",
+                            "flex items-center gap-2 font-normal text-muted-foreground hover:text-foreground transition-colors h-auto p-0 focus-visible:ring-0 focus-visible:ring-offset-0 shrink-0",
                             className
                         )}
                     >
                         <Database className="h-4 w-4" />
-                        <span className="hidden sm:inline">{dataStandLabel}</span>
+                        <span className={cn(
+                            "hidden sm:inline",
+                            forceLabelVisible && "inline"
+                        )}>{dataStandLabel}</span>
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="bottom" className="max-w-xs p-3">

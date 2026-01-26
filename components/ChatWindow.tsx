@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { Send, StopCircle, ChevronDown, ChevronUp, Cpu, Sparkles, FileText, BrainCircuit, Loader2, Paperclip, X, Info } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useChat, FileAttachment } from '@/hooks/useChat'
 import { ChatService } from '@/services/chatService'
 import { Button } from '@/components/ui/button'
@@ -212,6 +213,8 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
         })
     }
 
+    const router = useRouter() // Ensure you import useRouter from next/navigation
+
     const handleSubmit = async (e?: React.FormEvent, contentOverride?: string) => {
         e?.preventDefault()
         // Use override if provided, otherwise fallback to state
@@ -272,6 +275,8 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                     window.dispatchEvent(new CustomEvent('chat-title-updated', {
                         detail: { chatId: chat.id, title: newTitle }
                     }))
+                    // Force refresh to update sidebar on mobile (where it might be unmounted)
+                    router.refresh()
                 })
                 .catch(console.error)
         }

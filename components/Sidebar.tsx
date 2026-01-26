@@ -258,7 +258,7 @@ export function Sidebar({ initialChats = [], user }: SidebarProps) {
                 </div>
 
                 <div className="mb-4">
-                    <DataSourceBadge variant="compact" className="w-full justify-start pl-0 hover:bg-transparent" />
+                    <DataSourceBadge variant="compact" forceLabelVisible className="w-full justify-start pl-0 hover:bg-transparent" />
                 </div>
 
                 <div className="flex items-center gap-2 mb-4">

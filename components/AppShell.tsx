@@ -23,7 +23,7 @@ export function AppShell({ children, sidebar }: AppShellProps) {
     }, [pathname])
 
     return (
-        <div className="flex h-screen w-full bg-background overflow-hidden">
+        <div className="flex h-[100dvh] w-full bg-background overflow-hidden">
             {/* Mobile Sidebar (Sheet) */}
             <div className="md:hidden">
                 <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
