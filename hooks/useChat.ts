@@ -160,7 +160,7 @@ export function useChat({ sessionId, chatId, onMessageComplete }: UseChatProps) 
                             type: 'tool_call',
                             data: {
                                 tool: step.action.tool,
-                                toolInput: step.action.toolInput,
+                                input: step.action.toolInput,
                                 log: step.action.log,
                                 toolCallId: step.action.toolCallId,
                                 type: step.action.type
