@@ -50,11 +50,21 @@ export async function POST(req: Request) {
             }
         )
 
-        // Verify Authentication
-        const { data: { user }, error: authError } = await supabase.auth.getUser()
-        if (authError || !user) {
-            console.error('[Proxy] Unauthorized access attempt')
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        // Verify Authentication (Allow incognito bypass)
+        let resolvedUserId = sanitizedBody.userId
+
+        if (sanitizedBody.userId !== 'incognito') {
+            const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+            if (authError || !user) {
+                console.error('[Proxy] Unauthorized access attempt')
+                return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+            }
+
+            // Enforce that the authenticated user matches the request or simply use the auth user ID
+            resolvedUserId = user.id
+        } else {
+            console.log('[Proxy] Allowing incognito access')
         }
 
         // Validate environment variables
@@ -89,7 +99,7 @@ export async function POST(req: Request) {
         // Pass user ID context to n8n if needed
         const payload = {
             ...sanitizedBody,
-            userId: user.id
+            userId: resolvedUserId
         }
 
         const response = await fetch(webhookUrl, {

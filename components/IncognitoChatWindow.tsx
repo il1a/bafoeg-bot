@@ -18,6 +18,7 @@ import { extractPdfText, isPdf } from '@/utils/pdf-extractor'
 import { SurveyBanner } from '@/components/SurveyBanner'
 import { SurveyModal } from '@/components/SurveyModal'
 import { DataSourceBadge } from '@/components/DataSourceBadge'
+import { ExamplePrompts } from '@/components/ExamplePrompts'
 
 // Ephemeral message type (no DB schema dependency)
 interface EphemeralMessage {
@@ -345,11 +346,13 @@ export function IncognitoChatWindow() {
         }
     }, [sessionId, isLoading, isEasyLanguage])
 
-    const handleSubmit = async (e?: React.FormEvent) => {
+    const handleSubmit = async (e?: React.FormEvent, contentOverride?: string) => {
         e?.preventDefault()
-        if ((!input.trim() && !attachedFile) || isLoading) return
 
-        const content = input.trim()
+        const content = contentOverride || input.trim()
+
+        if ((!content && !attachedFile) || isLoading) return
+
         setInput('')
 
         // Prepare file attachment if present
@@ -422,29 +425,42 @@ export function IncognitoChatWindow() {
 
             {/* Messages */}
             <ScrollArea className="flex-1 w-full min-h-0">
-                <div className="flex flex-col gap-6 p-4 pb-32 max-w-3xl mx-auto">
+                <div className={cn(
+                    "flex flex-col gap-6 p-4 max-w-3xl mx-auto",
+                    messages.length === 0 ? "h-full" : "pb-32"
+                )}>
                     {messages.length === 0 && !isLoading && (
-                        <div className="flex flex-col items-center justify-center p-8 text-center mt-20">
-                            <div className="h-16 w-16 mb-6">
-                                <img src="/bot-avatar.svg" alt="BAföG Bot" className="w-full h-full" />
+                        <div className="flex flex-col h-full">
+                            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center mt-4">
+
+                                <h3 className="text-xl font-semibold mb-3">{t('greeting' as any)}</h3>
+                                <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
+                                    {t('greetingSub' as any)}
+                                </p>
+
+
+
+                                <p className="text-xs text-muted-foreground/70 max-w-md mt-5 leading-relaxed">
+                                    {t('surveyWelcome' as any)}
+                                    <a
+                                        href="https://umfragenup.uni-potsdam.de/Bafoeg_chatbot/"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-primary hover:underline"
+                                    >
+                                        {t('surveyWelcomeLink' as any)}
+                                    </a>
+                                </p>
+                                {/* Data source transparency badge */}
+                                <DataSourceBadge variant="full" className="mt-6 max-w-md" />
                             </div>
-                            <h3 className="text-xl font-semibold mb-3">{t('greeting' as any)}</h3>
-                            <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
-                                {t('greetingSub' as any)}
-                            </p>
-                            <p className="text-xs text-muted-foreground/70 max-w-md mt-5 leading-relaxed">
-                                {t('surveyWelcome' as any)}
-                                <a
-                                    href="https://umfragenup.uni-potsdam.de/Bafoeg_chatbot/"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-primary hover:underline"
-                                >
-                                    {t('surveyWelcomeLink' as any)}
-                                </a>
-                            </p>
-                            {/* Data source transparency badge */}
-                            <DataSourceBadge variant="full" className="mt-6 max-w-md" />
+
+                            <div className="w-full px-4 pb-4">
+                                <ExamplePrompts
+                                    onSelect={(text) => handleSubmit(undefined, text)}
+                                    className="mt-auto"
+                                />
+                            </div>
                         </div>
                     )}
 

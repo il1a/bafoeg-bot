@@ -102,7 +102,27 @@ export const translations = {
         // Data Source Transparency
         dataStand: "Data Status",
         dataSourceBafoeg: "29th BAföG Reform (July 2024)",
-        dataSourceMinijob: "Minijob Limit 2026: €603"
+        dataSourceMinijob: "Minijob Limit 2026: €603",
+
+        // Example Prompts
+        prompts: {
+            eligibility: {
+                label: "Am I eligible?",
+                query: "What are the requirements to be eligible for BAföG? Please explain the age limits, nationality requirements, and other prerequisites."
+            },
+            application: {
+                label: "How to apply",
+                query: "How do I apply for BAföG? Which forms do I need and where should I submit them? Can I apply online?"
+            },
+            income: {
+                label: "Income limits",
+                query: "What are the income limits for BAföG? How much can my parents or I earn before my funding is reduced?"
+            },
+            abroad: {
+                label: "Study abroad",
+                query: "Can I get BAföG for studying abroad? What are the conditions and how does it differ from domestic funding?"
+            }
+        }
     },
     de: {
         // Sidebar
@@ -205,7 +225,27 @@ export const translations = {
         // Data Source Transparency
         dataStand: "Datenstand",
         dataSourceBafoeg: "29. BAföG-Reform (Juli 2024)",
-        dataSourceMinijob: "Minijob-Grenze 2026: 603 €"
+        dataSourceMinijob: "Minijob-Grenze 2026: 603 €",
+
+        // Example Prompts
+        prompts: {
+            eligibility: {
+                label: "Bin ich berechtigt?",
+                query: "Welche Voraussetzungen muss ich erfüllen, um BAföG zu erhalten? Bitte erkläre die Altersgrenzen, Staatsangehörigkeit und weitere Bedingungen."
+            },
+            application: {
+                label: "Wie stelle ich einen Antrag?",
+                query: "Wie beantrage ich BAföG? Welche Formblätter brauche ich und wo reiche ich sie ein? Geht das auch online?"
+            },
+            income: {
+                label: "Einkommensgrenzen",
+                query: "Wie hoch sind die Einkommensgrenzen beim BAföG? Wie viel dürfen meine Eltern oder ich verdienen, bevor die Förderung gekürzt wird?"
+            },
+            abroad: {
+                label: "Auslandsförderung",
+                query: "Kann ich BAföG für ein Auslandsstudium bekommen? Was sind die Voraussetzungen und wie unterscheidet es sich vom Inlands-BAföG?"
+            }
+        }
     }
 }
 

@@ -19,6 +19,7 @@ import { SurveyBanner } from '@/components/SurveyBanner'
 import { SurveyModal } from '@/components/SurveyModal'
 import { DataSourceBadge } from '@/components/DataSourceBadge'
 import { useAccessibility } from '@/contexts/accessibility-context'
+import { ExamplePrompts } from '@/components/ExamplePrompts'
 
 type Message = Database['public']['Tables']['messages']['Row']
 type Chat = Database['public']['Tables']['chats']['Row']
@@ -211,11 +212,14 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
         })
     }
 
-    const handleSubmit = async (e?: React.FormEvent) => {
+    const handleSubmit = async (e?: React.FormEvent, contentOverride?: string) => {
         e?.preventDefault()
-        if ((!input.trim() && !attachedFile) || isLoading) return
+        // Use override if provided, otherwise fallback to state
+        const contentToUse = contentOverride || input.trim()
 
-        const content = input.trim()
+        if ((!contentToUse && !attachedFile) || isLoading) return
+
+        const content = contentToUse
         setInput('')
 
         // Prepare file attachment if present
@@ -298,29 +302,42 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
 
             {/* Messages */}
             <ScrollArea className="flex-1 w-full min-h-0">
-                <div className="flex flex-col gap-6 p-4 pb-32 max-w-3xl mx-auto">
+                <div className={cn(
+                    "flex flex-col gap-6 p-4 max-w-3xl mx-auto", // Removed pb-32 to handle it dynamically or in inner content
+                    messages.length === 0 ? "h-full" : "pb-32"
+                )}>
                     {messages.length === 0 && !isLoading && (
-                        <div className="flex flex-col items-center justify-center p-8 text-center mt-20">
-                            <div className="h-16 w-16 mb-6">
-                                <img src="/bot-avatar.svg" alt="BAföG Bot" className="w-full h-full" />
+                        <div className="flex flex-col h-full">
+                            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center mt-4">
+
+                                <h3 className="text-xl font-semibold mb-3">{t('greeting' as any)}</h3>
+                                <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
+                                    {t('greetingSub' as any)}
+                                </p>
+
+
+
+                                <p className="text-xs text-muted-foreground/70 max-w-md mt-5 leading-relaxed">
+                                    {t('surveyWelcome' as any)}
+                                    <a
+                                        href="https://umfragenup.uni-potsdam.de/Bafoeg_chatbot/"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-primary hover:underline"
+                                    >
+                                        {t('surveyWelcomeLink' as any)}
+                                    </a>
+                                </p>
+                                {/* Data source transparency badge */}
+                                <DataSourceBadge variant="full" className="mt-6 max-w-md" />
                             </div>
-                            <h3 className="text-xl font-semibold mb-3">{t('greeting' as any)}</h3>
-                            <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
-                                {t('greetingSub' as any)}
-                            </p>
-                            <p className="text-xs text-muted-foreground/70 max-w-md mt-5 leading-relaxed">
-                                {t('surveyWelcome' as any)}
-                                <a
-                                    href="https://umfragenup.uni-potsdam.de/Bafoeg_chatbot/"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-primary hover:underline"
-                                >
-                                    {t('surveyWelcomeLink' as any)}
-                                </a>
-                            </p>
-                            {/* Data source transparency badge */}
-                            <DataSourceBadge variant="full" className="mt-6 max-w-md" />
+
+                            <div className="w-full px-4 pb-4">
+                                <ExamplePrompts
+                                    onSelect={(text) => handleSubmit(undefined, text)}
+                                    className="mt-auto"
+                                />
+                            </div>
                         </div>
                     )}
 
