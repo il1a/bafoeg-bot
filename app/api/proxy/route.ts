@@ -121,7 +121,7 @@ export async function POST(req: Request) {
 
         // Parse JSON response from n8n
         const data = await response.json()
-        console.log('[Proxy] Response from n8n:', JSON.stringify(data))
+        console.log('[Proxy] Response from n8n:', JSON.stringify(data).substring(0, 500) + '...')
 
         return NextResponse.json(data)
 
