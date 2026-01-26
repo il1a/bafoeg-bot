@@ -19,6 +19,7 @@ import { SurveyBanner } from '@/components/SurveyBanner'
 import { SurveyModal } from '@/components/SurveyModal'
 import { DataSourceBadge } from '@/components/DataSourceBadge'
 import { ExamplePrompts } from '@/components/ExamplePrompts'
+import { cleanModelOutput } from '@/utils/clean-text'
 
 // Ephemeral message type (no DB schema dependency)
 interface EphemeralMessage {
@@ -128,35 +129,6 @@ function ToolCallDetails({ events }: { events: any[] }) {
     )
 }
 
-// Helper to clean model output (same as useChat.ts)
-// Only removes functional "assistantfinal" markers (system tokens from n8n)
-// Preserves all visible markdown formatting including Antwort/Answer headers
-function cleanModelOutput(rawOutput: string): string {
-    if (!rawOutput) return ''
-    let cleanedOutput = rawOutput
-
-    // Only remove functional "assistantfinal" markers (system tokens)
-    // These are internal markers from n8n, not visible to users
-    const functionalMarkers = [
-        /answer\.assistantfinal\s*/gi,
-        /assistantfinal\s*/gi,
-    ]
-
-    for (const marker of functionalMarkers) {
-        // Find all matches to select the last one (in case instructions echo these)
-        const matches = [...cleanedOutput.matchAll(marker)]
-        if (matches.length > 0) {
-            const lastMatch = matches[matches.length - 1]
-            if (lastMatch.index !== undefined) {
-                cleanedOutput = cleanedOutput.substring(lastMatch.index + lastMatch[0].length).trim()
-                break
-            }
-        }
-    }
-
-    return cleanedOutput.trim()
-}
-
 export function IncognitoChatWindow() {
     const { t } = useLanguage()
     const { isEasyLanguage, fontSize } = useAccessibility()
@@ -171,6 +143,12 @@ export function IncognitoChatWindow() {
     const [attachedFile, setAttachedFile] = useState<File | null>(null)
     const [filePreview, setFilePreview] = useState<string | null>(null)
     const [showUploadInfo, setShowUploadInfo] = useState(false)
+
+    // Ref to access latest messages in sendMessage callback without dependency cycle
+    const messagesRef = useRef<EphemeralMessage[]>([])
+    useEffect(() => {
+        messagesRef.current = messages
+    }, [messages])
 
     // Count assistant messages for survey triggers
     const assistantMessageCount = useMemo(() => {
@@ -297,7 +275,14 @@ export function IncognitoChatWindow() {
                         message: isEasyLanguage
                             ? `${content || '[Document attached]'}\n\n[System Note: The user has requested Simple Language (Leichte Sprache). Please keep your response very simple, short, and easy to understand using basic vocabulary. Avoid complex sentence structures.]`
                             : (content || '[Document attached]'),
-                        files: files && files.length > 0 ? files : undefined
+                        files: files && files.length > 0 ? files : undefined,
+                        chatHistory: messagesRef.current
+                            .filter((m: EphemeralMessage) => m.status === 'complete' && m.content) // Only completed, non-empty messages
+                            .slice(-10) // Sliding window: last 10
+                            .map((m: EphemeralMessage) => ({
+                                role: m.role,
+                                content: m.content
+                            }))
                     }),
                 })
 
@@ -340,8 +325,8 @@ export function IncognitoChatWindow() {
                             type: 'tool_call',
                             data: {
                                 tool: step.action.tool,
-                                input: step.action.toolInput,
-                                output: step.observation
+                                input: step.action.toolInput
+                                // output: step.observation // Removed to reduce payload size
                             }
                         })
                     }

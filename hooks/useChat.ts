@@ -1,7 +1,8 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { Database } from '@/types/supabase'
 import { useAccessibility } from '@/contexts/accessibility-context'
+import { cleanModelOutput } from '@/utils/clean-text'
 
 type Message = Database['public']['Tables']['messages']['Row']
 
@@ -43,41 +44,16 @@ export interface FileAttachment {
     textExtractionSuccess?: boolean  // True if text was successfully extracted
 }
 
-
-
-// Helper to clean model output
-// Only removes functional "assistantfinal" markers (system tokens from n8n)
-// Preserves all visible markdown formatting including Antwort/Answer headers
-function cleanModelOutput(rawOutput: string): string {
-    if (!rawOutput) return ''
-    let cleanedOutput = rawOutput
-
-    // Only remove functional "assistantfinal" markers (system tokens)
-    // These are internal markers from n8n, not visible to users
-    const functionalMarkers = [
-        /answer\.assistantfinal\s*/gi,
-        /assistantfinal\s*/gi,
-    ]
-
-    for (const marker of functionalMarkers) {
-        // Find all matches to select the last one (in case instructions echo these)
-        const matches = [...cleanedOutput.matchAll(marker)]
-        if (matches.length > 0) {
-            const lastMatch = matches[matches.length - 1]
-            if (lastMatch.index !== undefined) {
-                cleanedOutput = cleanedOutput.substring(lastMatch.index + lastMatch[0].length).trim()
-                break
-            }
-        }
-    }
-
-    return cleanedOutput.trim()
-}
-
 export function useChat({ sessionId, chatId, onMessageComplete }: UseChatProps) {
     const [messages, setMessages] = useState<Message[]>([])
     const [isLoading, setIsLoading] = useState(false)
     const { isEasyLanguage } = useAccessibility()
+
+    // Ref to access latest messages in sendMessage callback
+    const messagesRef = useRef<Message[]>([])
+    useEffect(() => {
+        messagesRef.current = messages
+    }, [messages])
 
     const sendMessage = useCallback(async (content: string, userId: string, files?: FileAttachment[]) => {
         setIsLoading(true)
@@ -133,7 +109,14 @@ export function useChat({ sessionId, chatId, onMessageComplete }: UseChatProps) 
                         message: isEasyLanguage
                             ? `${content}\n\n[System Note: The user has requested Simple Language (Leichte Sprache). Please keep your response very simple, short, and easy to understand using basic vocabulary. Avoid complex sentence structures.]`
                             : content,
-                        files: files && files.length > 0 ? files : undefined
+                        files: files && files.length > 0 ? files : undefined,
+                        chatHistory: messagesRef.current
+                            .filter((m: Message) => m.status === 'complete' && m.content)
+                            .slice(-10)
+                            .map((m: Message) => ({
+                                role: m.role,
+                                content: m.content
+                            }))
                     }),
                 })
 
@@ -177,8 +160,11 @@ export function useChat({ sessionId, chatId, onMessageComplete }: UseChatProps) 
                             type: 'tool_call',
                             data: {
                                 tool: step.action.tool,
-                                input: step.action.toolInput,
-                                output: step.observation
+                                toolInput: step.action.toolInput,
+                                log: step.action.log,
+                                toolCallId: step.action.toolCallId,
+                                type: step.action.type
+                                // output: step.observation // Removed to reduce payload size
                             }
                         })
                     }

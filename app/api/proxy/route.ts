@@ -23,7 +23,10 @@ export async function POST(req: Request) {
             }
         }
 
-        console.log('[Proxy] Forwarding request to n8n:', sanitizedBody)
+        console.log('[Proxy] Forwarding request to n8n:', {
+            ...sanitizedBody,
+            chatHistory: body.chatHistory ? `[${body.chatHistory.length} messages]` : undefined
+        })
 
         // Initialize Supabase Server Client for Auth Check
         const cookieStore = await cookies()
@@ -118,7 +121,7 @@ export async function POST(req: Request) {
 
         // Parse JSON response from n8n
         const data = await response.json()
-        console.log('[Proxy] Response from n8n:', JSON.stringify(data).substring(0, 500))
+        console.log('[Proxy] Response from n8n:', JSON.stringify(data))
 
         return NextResponse.json(data)
 
