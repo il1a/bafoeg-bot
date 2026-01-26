@@ -280,70 +280,106 @@ export function IncognitoChatWindow() {
 
         setMessages(prev => [...prev, assistantMessage])
 
-        try {
-            const response = await fetch('/api/proxy', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sessionId,
-                    chatId: `incognito-${sessionId}`,
-                    userId: 'incognito',
-                    message: isEasyLanguage
-                        ? `${content || '[Document attached]'}\n\n[System Note: The user has requested Simple Language (Leichte Sprache). Please keep your response very simple, short, and easy to understand using basic vocabulary. Avoid complex sentence structures.]`
-                        : (content || '[Document attached]'),
-                    files: files && files.length > 0 ? files : undefined
-                }),
-            })
+        const MAX_RETRIES = 3
+        const INITIAL_RETRY_DELAY = 1000
 
-            if (!response.ok) {
-                throw new Error(`HTTP Error: ${response.statusText}`)
-            }
+        let lastError: Error | null = null
 
-            const data = await response.json()
-            const cleanedOutput = cleanModelOutput(data.output)
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                const response = await fetch('/api/proxy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sessionId,
+                        chatId: `incognito-${sessionId}`,
+                        userId: 'incognito',
+                        message: isEasyLanguage
+                            ? `${content || '[Document attached]'}\n\n[System Note: The user has requested Simple Language (Leichte Sprache). Please keep your response very simple, short, and easy to understand using basic vocabulary. Avoid complex sentence structures.]`
+                            : (content || '[Document attached]'),
+                        files: files && files.length > 0 ? files : undefined
+                    }),
+                })
 
-            if (!cleanedOutput || cleanedOutput.trim().length === 0) {
-                throw new Error('Empty response from AI')
-            }
+                if (!response.ok) {
+                    // Only retry on 5xx server errors
+                    if (response.status >= 500 && attempt < MAX_RETRIES) {
+                        const delay = INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1)
+                        console.warn(`[IncognitoChat] Server error ${response.status}. Retrying in ${delay}ms (Attempt ${attempt}/${MAX_RETRIES})...`)
+                        await new Promise(resolve => setTimeout(resolve, delay))
+                        continue
+                    }
+                    throw new Error(`HTTP Error: ${response.status} ${response.statusText}`)
+                }
 
-            // Calculate duration and build events array
-            const durationMs = Date.now() - requestStartTime
-            const durationSec = (durationMs / 1000).toFixed(1)
+                const data = await response.json()
+                const cleanedOutput = cleanModelOutput(data.output)
 
-            const events: any[] = []
+                // Check for empty response — retry if empty
+                if (!cleanedOutput || cleanedOutput.trim().length === 0) {
+                    if (attempt < MAX_RETRIES) {
+                        const delay = INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1)
+                        console.warn(`[IncognitoChat] Empty response. Retrying in ${delay}ms (Attempt ${attempt}/${MAX_RETRIES})...`)
+                        await new Promise(resolve => setTimeout(resolve, delay))
+                        continue
+                    }
+                    throw new Error('Empty response from AI')
+                }
 
-            // Parse intermediate steps into tool call events
-            if (data.intermediateSteps && data.intermediateSteps.length > 0) {
-                for (const step of data.intermediateSteps) {
-                    events.push({
-                        type: 'tool_call',
-                        data: {
-                            tool: step.action.tool,
-                            input: step.action.toolInput,
-                            output: step.observation
-                        }
-                    })
+                // Success!
+                // Calculate duration and build events array
+                const durationMs = Date.now() - requestStartTime
+                const durationSec = (durationMs / 1000).toFixed(1)
+
+                const events: any[] = []
+
+                // Parse intermediate steps into tool call events
+                if (data.intermediateSteps && data.intermediateSteps.length > 0) {
+                    for (const step of data.intermediateSteps) {
+                        events.push({
+                            type: 'tool_call',
+                            data: {
+                                tool: step.action.tool,
+                                input: step.action.toolInput,
+                                output: step.observation
+                            }
+                        })
+                    }
+                }
+
+                // Add metrics event
+                events.push({ type: 'metrics', data: { duration: durationSec } })
+
+                setMessages(prev => prev.map(msg =>
+                    msg.id === assistantMessageId
+                        ? { ...msg, content: cleanedOutput, status: 'complete', events }
+                        : msg
+                ))
+
+                setIsLoading(false)
+                return // Exit the function on success
+
+            } catch (error: any) {
+                console.error(`[IncognitoChat] Attempt ${attempt} failed:`, error)
+                lastError = error
+
+                // If it's a network error (fetch throws), retry
+                if (attempt < MAX_RETRIES) {
+                    const delay = INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1)
+                    await new Promise(resolve => setTimeout(resolve, delay))
+                    continue
                 }
             }
-
-            // Add metrics event
-            events.push({ type: 'metrics', data: { duration: durationSec } })
-
-            setMessages(prev => prev.map(msg =>
-                msg.id === assistantMessageId
-                    ? { ...msg, content: cleanedOutput, status: 'complete', events }
-                    : msg
-            ))
-        } catch (error: any) {
-            console.error('Chat error:', error)
-            setMessages(prev => prev.map(msg =>
-                msg.id === assistantMessageId
-                    ? { ...msg, content: `Error: ${error?.message || 'Failed to get response'}`, status: 'error' }
-                    : msg
-            ))
-        } finally {
-            setIsLoading(false)
         }
+
+        // All retries failed
+        setMessages(prev => prev.map(msg =>
+            msg.id === assistantMessageId
+                ? { ...msg, content: `Error: ${lastError?.message || 'Failed to get response'}`, status: 'error' }
+                : msg
+        ))
+        setIsLoading(false)
+
     }, [sessionId, isLoading, isEasyLanguage])
 
     const handleSubmit = async (e?: React.FormEvent, contentOverride?: string) => {
@@ -480,7 +516,7 @@ export function IncognitoChatWindow() {
                             </Avatar>
 
                             <div className={cn(
-                                "flex flex-col gap-2 max-w-[85%]",
+                                "flex flex-col gap-2 max-w-[85%] min-w-0",
                                 msg.role === 'user' ? "items-end" : "items-start"
                             )}>
                                 {/* Loading state */}

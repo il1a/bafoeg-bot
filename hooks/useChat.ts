@@ -43,8 +43,7 @@ export interface FileAttachment {
     textExtractionSuccess?: boolean  // True if text was successfully extracted
 }
 
-const MAX_RETRIES = 3
-const RETRY_DELAY_MS = 500
+
 
 // Helper to clean model output
 // Only removes functional "assistantfinal" markers (system tokens from n8n)
@@ -114,6 +113,9 @@ export function useChat({ sessionId, chatId, onMessageComplete }: UseChatProps) 
 
         setMessages(prev => [...prev, assistantMessage])
 
+        const MAX_RETRIES = 3
+        const INITIAL_RETRY_DELAY = 1000
+
         // Retry loop for handling empty responses from OpenRouter
         let lastError: Error | null = null
 
@@ -136,6 +138,13 @@ export function useChat({ sessionId, chatId, onMessageComplete }: UseChatProps) 
                 })
 
                 if (!response.ok) {
+                    // Only retry on 5xx server errors
+                    if (response.status >= 500 && attempt < MAX_RETRIES) {
+                        const delay = INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1)
+                        console.warn(`[Chat] Server error ${response.status}. Retrying in ${delay}ms (Attempt ${attempt}/${MAX_RETRIES})...`)
+                        await new Promise(resolve => setTimeout(resolve, delay))
+                        continue
+                    }
                     throw new Error(`HTTP Error: ${response.statusText}`)
                 }
 
@@ -148,7 +157,8 @@ export function useChat({ sessionId, chatId, onMessageComplete }: UseChatProps) 
                     lastError = new Error('Empty response from AI')
 
                     if (attempt < MAX_RETRIES) {
-                        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS))
+                        const delay = INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1)
+                        await new Promise(resolve => setTimeout(resolve, delay))
                         continue
                     }
                     throw lastError
@@ -200,7 +210,8 @@ export function useChat({ sessionId, chatId, onMessageComplete }: UseChatProps) 
                 lastError = error
 
                 if (attempt < MAX_RETRIES) {
-                    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS))
+                    const delay = INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1)
+                    await new Promise(resolve => setTimeout(resolve, delay))
                     continue
                 }
             }

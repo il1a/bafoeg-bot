@@ -173,7 +173,7 @@ export default function MarkdownRenderer({ content, className }: MarkdownRendere
                         },
                         table({ children }) {
                             return (
-                                <div className="overflow-x-auto my-4">
+                                <div className="w-full overflow-x-auto my-4 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
                                     <table className="min-w-full divide-y divide-border border">
                                         {children}
                                     </table>

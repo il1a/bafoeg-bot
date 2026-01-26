@@ -70,7 +70,7 @@ export const translations = {
         // Incognito Mode
         or: "Or",
         tryWithoutAccount: "Try without account",
-        incognitoBanner: "You're in incognito mode. Your chat will disappear when you close this tab.",
+        incognitoBanner: "Your chat will disappear when you close this tab.",
         signUpToSave: "Sign up to save",
 
         // Upload Disclaimer
@@ -193,7 +193,7 @@ export const translations = {
         // Incognito Mode
         or: "Oder",
         tryWithoutAccount: "Ohne Konto testen",
-        incognitoBanner: "Du bist im Inkognito-Modus. Dein Chat verschwindet, wenn du diesen Tab schließt.",
+        incognitoBanner: "Dein Chat verschwindet, wenn du diesen Tab schließt.",
         signUpToSave: "Registrieren zum Speichern",
 
         // Upload Disclaimer

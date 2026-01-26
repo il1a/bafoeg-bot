@@ -4,11 +4,10 @@ import { Database, Scale } from 'lucide-react'
 import { useLanguage } from '@/contexts/language-context'
 import { cn } from '@/lib/utils'
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip'
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 import { Button } from '@/components/ui/button'
 
@@ -31,34 +30,32 @@ export function DataSourceBadge({ variant = 'full', className }: DataSourceBadge
 
     if (variant === 'compact') {
         return (
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className={cn(
-                                "flex items-center gap-2 font-normal text-muted-foreground hover:text-foreground transition-colors h-auto p-0",
-                                className
-                            )}
-                        >
-                            <Database className="h-4 w-4" />
-                            <span className="hidden sm:inline">{dataStandLabel}</span>
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" className="max-w-xs">
-                        <div className="text-xs space-y-1">
-                            <div className="flex items-center gap-2">
-                                <Scale className="h-3 w-3 text-primary" />
-                                <span>{bafoegReform}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <span className="ml-5">{minijobInfo}</span>
-                            </div>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                            "flex items-center gap-2 font-normal text-muted-foreground hover:text-foreground transition-colors h-auto p-0 focus-visible:ring-0 focus-visible:ring-offset-0",
+                            className
+                        )}
+                    >
+                        <Database className="h-4 w-4" />
+                        <span className="hidden sm:inline">{dataStandLabel}</span>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="bottom" className="max-w-xs p-3">
+                    <div className="text-xs space-y-2">
+                        <div className="flex items-center gap-2">
+                            <Scale className="h-3.5 w-3.5 text-primary shrink-0" />
+                            <span className="font-medium">{bafoegReform}</span>
                         </div>
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
+                        <div className="flex items-center gap-2 pl-5.5 text-muted-foreground">
+                            <span>{minijobInfo}</span>
+                        </div>
+                    </div>
+                </DropdownMenuContent>
+            </DropdownMenu>
         )
     }
 

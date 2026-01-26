@@ -357,7 +357,7 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                             </Avatar>
 
                             <div className={cn(
-                                "flex flex-col gap-2 max-w-[85%]", // Increased width slightly
+                                "flex flex-col gap-2 max-w-[85%] min-w-0", // Increased width slightly
                                 msg.role === 'user' ? "items-end" : "items-start"
                             )}>
                                 {/* Loading state for assistant message */}
