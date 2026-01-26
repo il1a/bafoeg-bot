@@ -148,10 +148,14 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
 
     // Initialize messages
     useEffect(() => {
-        if (initialMessages.length > 0) {
+        // Only set messages if we have no messages yet (initial load)
+        // or if we're technically just mounting this chat.
+        // We avoid overwriting if we already have messages to prevent 
+        // router.refresh() from wiping out the optimistic/streaming state.
+        if (messages.length === 0 && initialMessages.length > 0) {
             setMessages(initialMessages)
         }
-    }, [initialMessages, setMessages])
+    }, [initialMessages, setMessages, messages.length])
 
     // Count assistant messages for survey triggers
     const assistantMessageCount = useMemo(() => {
