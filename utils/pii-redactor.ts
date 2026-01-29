@@ -130,14 +130,23 @@ const PII_PATTERNS: PIIPattern[] = [
 /**
  * Common name patterns (first name + last name) - ENGLISH and GERMAN
  * Catches "my name is X Y", "mein Name ist X Y", "I am X Y", etc.
+ * Also catches signatures like "Best, [Name]"
  */
 const NAME_CONTEXT_PATTERNS: RegExp[] = [
-    // German patterns
-    /(?:(?:mein|ich\s+bin|name\s+ist|heisse|heiße|ich\s+heiße)\s+)([A-ZÄÖÜ][a-zäöüß]+(?:\s+[A-ZÄÖÜ][a-zäöüß-]+)?)/gi,
-    // English patterns
-    /(?:(?:my\s+name\s+is|i\s+am|i'm|call\s+me|this\s+is)\s+)([A-ZÄÖÜ][a-zäöüß]+(?:\s+[A-ZÄÖÜ][a-zäöüß-]+)?)/gi,
+    // German patterns (Introduction)
+    /(?:(?:mein|ich\s+bin|name\s+ist|heisse|heiße|ich\s+heiße)\s+)([A-ZÄÖÜ][a-zäöüß]+(?:\s+(?!(?:und|oder|aber|denn)\b)[A-ZÄÖÜ][a-zäöüß-]+)?)/gi,
+
+    // English patterns (Introduction)
+    /(?:(?:my\s+name\s+is|i\s+am|i'm|call\s+me|this\s+is)\s+)([A-ZÄÖÜ][a-zäöüß]+(?:\s+(?!(?:and|or|but|then)\b)[A-ZÄÖÜ][a-zäöüß-]+)?)/gi,
+
     // Direct introduction patterns
-    /(?:(?:name|Namen?)[\s:]+)([A-ZÄÖÜ][a-zäöüß]+(?:\s+[A-ZÄÖÜ][a-zäöüß-]+))/gi
+    // Matches "Name: [Name]" but avoids "Name is [Name]" (which is covered by other patterns) to prevent "is" capturing
+    /(?:(?:name|Namen?)[\s:]+(?!(?:is|ist|sind|are|was|war|has|hat)\b))([A-ZÄÖÜ][a-zäöüß]+(?:\s+(?!(?:und|oder|and|or)\b)[A-ZÄÖÜ][a-zäöüß-]+)?)/gi,
+
+    // Signatures (German & English)
+    // Matches: "Best, [Name]", "Greetings, [Name]", "Viele Grüße, [Name]", "LG [Name]"
+    // Requires a newline or start of string before the closing phrase to avoid false positives in mid-sentence
+    /(?:(?:^|\n|[\.,!?]\s+)(?:best|regards|sincerely|yours|cheers|greetings|viele\s+grüße|mit\s+freundlichen\s+grüßen|liebe\s+grüße|lg|vg|mfg)[\s,]+)([A-ZÄÖÜ][a-zäöüß]+(?:\s+(?!(?:und|oder|and|or)\b)[A-ZÄÖÜ][a-zäöüß-]+)?)/gi
 ]
 
 /**

@@ -21,6 +21,7 @@ import { SurveyModal } from '@/components/SurveyModal'
 import { DataSourceBadge } from '@/components/DataSourceBadge'
 import { useAccessibility } from '@/contexts/accessibility-context'
 import { ExamplePrompts } from '@/components/ExamplePrompts'
+import { redactPII } from '@/utils/pii-redactor'
 
 type Message = Database['public']['Tables']['messages']['Row']
 type Chat = Database['public']['Tables']['chats']['Row']
@@ -256,6 +257,13 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
             removeAttachment()
         }
 
+        // Redact PII from the message content before saving or sending
+        // This ensures unredacted PII is never stored in DB or sent to backend
+        const redactionResult = redactPII(content)
+        // We use the redacted content for EVERYTHING (Saving to DB, Sending to API, Displaying in UI)
+        // This provides visual confirmation to the user that PII was removed.
+        const effectiveContent = redactionResult.redactedText
+
         // Save User Message to DB immediately (fire and forget or await)
         // Store lightweight attachment metadata (no base64) for display after reload
         try {
@@ -263,7 +271,7 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                 chat_id: chat.id,
                 user_id: user.id,
                 role: 'user',
-                content: content || (files ? `[Attached: ${files[0].name}]` : ''),
+                content: effectiveContent || (files ? `[Attached: ${files[0].name}]` : ''),
                 events: files && files.length > 0 ? [{ type: 'attachment', data: { name: files[0].name, mimeType: files[0].mimeType } }] : null,
                 status: 'complete'
             })
@@ -273,7 +281,7 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
 
         // Auto-rename chat if it's the first message
         if (messages.length === 0) {
-            const newTitle = (content || attachedFile?.name || 'New Chat').split('\n')[0].substring(0, 40) + ((content?.length || 0) > 40 ? '...' : '')
+            const newTitle = (effectiveContent || attachedFile?.name || 'New Chat').split('\n')[0].substring(0, 40) + ((effectiveContent?.length || 0) > 40 ? '...' : '')
             ChatService.updateChatTitle(chat.id, newTitle)
                 .then(() => {
                     window.dispatchEvent(new CustomEvent('chat-title-updated', {
@@ -285,7 +293,7 @@ export function ChatWindow({ chat, user, initialMessages = [] }: ChatWindowProps
                 .catch(console.error)
         }
 
-        await sendMessage(content || '[Document attached]', user.id, files)
+        await sendMessage(effectiveContent || '[Document attached]', user.id, files)
     }
 
     const handleKeyDown = (e: React.KeyboardEvent) => {

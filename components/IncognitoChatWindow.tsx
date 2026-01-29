@@ -20,6 +20,7 @@ import { SurveyModal } from '@/components/SurveyModal'
 import { DataSourceBadge } from '@/components/DataSourceBadge'
 import { ExamplePrompts } from '@/components/ExamplePrompts'
 import { cleanModelOutput } from '@/utils/clean-text'
+import { redactPII } from '@/utils/pii-redactor'
 
 // Ephemeral message type (no DB schema dependency)
 interface EphemeralMessage {
@@ -403,7 +404,11 @@ export function IncognitoChatWindow() {
             removeAttachment()
         }
 
-        await sendMessage(content, files)
+        // Redact PII from the message content before sending
+        const redactionResult = redactPII(content)
+        const effectiveContent = redactionResult.redactedText
+
+        await sendMessage(effectiveContent, files)
     }
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
